@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AvtoO’quvchi: Admin</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+  <style>
+    400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #060913;
+      color: #F8FAFC;
+    }
+
+    .hud-font { font-family: 'JetBrains Mono', monospace; }
+
+    /* Phone casing */
+    .phone-mockup {
+      width: 390px;
+      height: 844px;
+      background: #0B0F19;
+      border-radius: 52px;
+      border: 8px solid #1E293B;
+      box-shadow: 
+        0 0 0 2px rgba(255, 255, 255, 0.08),
+        0 25px 60px -15px rgba(0, 0, 0, 0.9),
+        0 0 50px rgba(37, 99, 235, 0.15);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .screen {
+      display: none;
+      height: 100%;
+      width: 100%;
+      overflow-y: auto;
+      padding-bottom: 90px;
+    }
+    .screen.active {
+      display: block;
+      animation: screenFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .screen::-webkit-scrollbar { width: 0; }
+
+    @keyframes screenFade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Glass surfaces */
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .glass-card-interactive {
+      background: rgba(22, 30, 49, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .glass-card-interactive:hover {
+      background: rgba(30, 41, 59, 0.85);
+      border-color: rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Bottom Navigation */
+    .nav-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: rgba(11, 15, 25, 0.94);
+      backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 10px 14px 10px;
+      z-index: 100;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: #64748B;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: none;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+    .nav-btn.active {
+      color: #38BDF8;
+    }
+    .nav-btn.active i {
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+    }
+
+    /* Option button styling */
+    .quiz-option {
+      background: rgba(17, 24, 39, 0.6);
+      border: 1.5px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .quiz-option:hover {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .quiz-option.correct {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border-color: #10B981 !important;
+    }
+    .quiz-option.wrong {
+      background: rgba(239, 68, 68, 0.15) !important;
+      border-color: #EF4444 !important;
+    }
+    .quiz-option.correct .badge-letter {
+      background: #10B981;
+      color: #fff;
+    }
+    .quiz-option.wrong .badge-letter {
+      background: #EF4444;
+      color: #fff;
+    }
+
+    .badge-letter {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #94A3B8;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    /* Tab switcher on desktop view */
+    .view-tab {
+      padding: 9px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .view-tab.active {
+      color: #fff;
+      background: #2563EB;
+      border-color: #3B82F6;
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Ambient automotive mesh */
+    .ambient-bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, transparent 100%);
+      z-index: 1;
+    }
+
+    /* Realistic road sign SVG frame */
+    .sign-shadow {
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.6));
+    }
+  
+:root{color-scheme:dark}.ic{font-style:normal;display:inline-block;font-family:system-ui,"Segoe UI Symbol",sans-serif;line-height:1}
+.nav-btn svg{width:22px;height:22px;fill:currentColor}.nav-btn.active svg{filter:drop-shadow(0 0 8px rgba(56,189,248,.5))}
+body>.mb-6{display:none!important}@media(max-width:767px){body{padding:0!important;display:block!important;min-height:100dvh}.sbar,.dynamic-island{display:none!important}
+.phone-mockup{width:100%;height:100dvh;border:0;border-radius:0;box-shadow:none}.screen{padding-top:calc(env(safe-area-inset-top,0px) + 20px)}.nav-bar{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));height:calc(80px + env(safe-area-inset-bottom,0px))}}
+</style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center min-h-screen justify-center bg-[#05070E]">
+
+  <!-- Top bar controls for evaluation -->
+  <div class="mb-6 flex flex-col items-center gap-3">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        <span class="ic text-[10px]">⛨</span> Davlat YHQ Standarti 2026
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="ic text-[10px]">⬢</span> Claude AI Yordamchi
+      </span>
+    </div>
+    <div class="flex flex-wrap justify-center gap-2">
+      <button onclick="setScreen('home')" id="tab-home" class="view-tab active">
+        <span class="ic mr-1.5">◎</span> Boshqaruv
+      </button>
+      <button onclick="setScreen('exam')" id="tab-exam" class="view-tab">
+        <span class="ic mr-1.5">☑</span> Imtihon Simulyatori
+      </button>
+      <button onclick="setScreen('academy')" id="tab-academy" class="view-tab">
+        <span class="ic mr-1.5">▤</span> YHQ Kursi
+      </button>
+      <button onclick="setScreen('video')" id="tab-video" class="view-tab">
+        <span class="ic mr-1.5">▶</span> 4K Video Darslar
+      </button>
+      <button onclick="setScreen('ai')" id="tab-ai" class="view-tab">
+        <span class="ic mr-1.5">◈</span> AI Yo'riqchi (24/7)
+      </button>
+      <button onclick="setScreen('license')" id="tab-license" class="view-tab">
+        <span class="ic mr-1.5">▣</span> Profil & ID
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Screen Mockup -->
+  <div class="phone-mockup relative">
+    <div class="ambient-bg"></div>
+
+    <!-- Phone Top Status Bar -->
+    <div class="sbar relative z-50 pt-3 px-7 flex justify-between items-center text-xs text-slate-400 font-semibold select-none">
+      <span id="clk" class="hud-font text-white font-medium">09:41</span>
+      <!-- Dynamic Island inside header -->
+      <div class="dynamic-island">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/90 animate-pulse"></div>
+        <span class="text-[9px] text-slate-300 hud-font tracking-wider">AI ACTIVE</span>
+        <div class="w-2.5 h-2.5 rounded-full bg-blue-500/60"></div>
+      </div>
+      <div class="flex items-center gap-2 text-white">
+        <span class="ic text-[10px]">▂▄▆</span>
+        <span class="ic text-[10px]">≋</span>
+        <span class="ic text-xs text-emerald-400">▮</span>
+      </div>
+    </div>
+
+    <!-- ==================== 1. DASHBOARD / HOME SCREEN ==================== -->
+    <div class="screen active relative z-10 px-5 pt-6" id="screen-home">
+      <!-- User Profile Header -->
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="w-12 h-12 rounded-2xl  border-2 border-blue-500/40 shadow-lg shadow-blue-500/20" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0B0F19] flex items-center justify-center">
+              <span class="ic text-[8px] text-black">✓</span>
+            </div>
+          </div>
+          <div>
+            <p class="text-[11px] font-semibold tracking-wider uppercase text-slate-400">Haydovchi Talaba</p>
+            <h2 class="text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+              <span class="uName"></span>
+              <span class="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 font-mono">B-KATEGORIYA</span>
+            </h2>
+          </div>
+        </div>
+        <button class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white transition">
+          <span class="ic text-sm">◔</span>
+        </button>
+      </div>
+
+      <!-- Main Readiness Gauge (Kokpit Telemetriya) -->
+      <div class="glass-card rounded-2xl p-5 mb-5 relative overflow-hidden border border-slate-800">
+        <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <span class="ic text-blue-400">◔</span> Imtihonga Tayyorgarlik
+            </div>
+            <div class="text-2xl font-extrabold text-white mt-0.5 hud-font">
+              <span id="rdv">0</span><span class="text-sm text-blue-400 font-normal">%</span>
+            </div>
+          </div>
+          <div class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
+            <span class="ic text-[10px]">↗</span> Bugun: <span id="today">0</span> ta
+          </div>
+        </div>
+
+        <!-- Telemetry bar -->
+        <div class="w-full bg-slate-800/80 rounded-full h-2.5 p-0.5 mb-3.5 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-600 via-sky-400 to-emerald-400 h-full rounded-full shadow-lg shadow-sky-500/30" id="rdBar" style="width:0%;transition:width .8s"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-center">
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-medium">Yechilgan</p>
+            <p class="text-sm font-bold text-white hud-font"><span id="solved">0</span></p>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-medium">Xatolar</p>
+            <p class="text-sm font-bold text-white hud-font"><span id="wrongN">0</span> ta</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-medium">Muvaffaqiyat</p>
+            <p class="text-sm font-bold text-emerald-400 hud-font"><span id="acc">0%</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action: Davlat Imtihoni Simulyatori -->
+      <div 
+        onclick="startExam()"
+        class="group relative rounded-2xl overflow-hidden cursor-pointer mb-5 border border-blue-500/30 transition-all duration-300 hover:border-blue-400 shadow-xl"
+      >
+        <div class="absolute inset-0 bg-gradient-to-r from-[#0B1528] via-[#0D1D3A]/90 to-transparent z-10"></div>
+        <div class="absolute inset-0 w-full h-full  object-center group-hover:scale-105 transition-transform duration-700 opacity-60" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+        
+        <div class="relative z-20 p-5">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-600 text-white uppercase tracking-wider mb-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Imtihon rejimi
+          </span>
+          <h3 class="text-lg font-bold text-white tracking-tight mb-1">
+            Imtihon Test
+          </h3>
+          <p class="text-xs text-slate-300 max-w-[210px] leading-relaxed mb-4">
+            20 ta savol, 20 daqiqa, maksimal 2 ta xato imkoni.
+          </p>
+          <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-blue-600/40 group-hover:bg-blue-500 transition">
+              Simulyatsiyani Boshlash <span class="ic text-[10px]">›</span>
+            </span>
+            <span class="text-[11px] text-slate-300 font-mono">Imtihon</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modullar Grid -->
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+        <span>Bo'limlar</span>
+        <span class="text-blue-400 cursor-pointer font-medium hover:underline text-[11px]">8 ta bo'lim</span>
+      </h3>
+
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- 1 -->
+        <div onclick="setScreen('exam')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3">
+            <span class="ic text-base">◉</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">Yo'l Belgilari</h4>
+          <p class="text-[11px] text-slate-400">180 ta standart belgi</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Progress</span>
+            <span class="text-sky-400">92%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-blue-500 h-full rounded-full w-[92%]"></div>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div onclick="setScreen('academy')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
+            <span class="ic text-base">➤</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">Chorrahada Ustunlik</h4>
+          <p class="text-[11px] text-slate-400">Teng huquqli va aylanma</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Progress</span>
+            <span class="text-emerald-400">76%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-emerald-500 h-full rounded-full w-[76%]"></div>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div onclick="setScreen('video')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3">
+            <span class="ic text-base">▰</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">Avtodrom Mashqlari</h4>
+          <p class="text-[11px] text-slate-400">Estakada, burchakka kirish</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Video darslar</span>
+            <span class="text-amber-400">12 ta</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-amber-500 h-full rounded-full w-[50%]"></div>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div onclick="setScreen('ai')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
+            <span class="ic text-base">✺</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">AI Yo'l Eksperti</h4>
+          <p class="text-[11px] text-slate-400">Noaniq savollar sharhi</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Holat</span>
+            <span class="text-emerald-400">Online 24/7</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-purple-500 h-full rounded-full w-[100%]"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. EXAM SIMULATOR (TEST) ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-exam">
+      <!-- Test Header with Countdown Timer -->
+      <div class="flex items-center justify-between mb-4">
+        <button onclick="setScreen('home')" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white">
+          <span class="ic text-xs">←</span>
+        </button>
+        <div class="text-center">
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400"><span id="eh">Test</span></span>
+          <p class="text-xs font-bold text-white">Savol <span id="qn">1</span> / <span id="qt">1</span></p>
+        </div>
+        <!-- Authentic Exam Countdown Timer -->
+        <div class="px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-1.5 text-red-400 hud-font text-xs font-bold">
+          <span class="ic text-[10px]">◷</span> <span id="tmr">0:00</span>
+        </div>
+      </div>
+
+      <!-- Question Tracker Dots -->
+      <div class="flex items-center justify-between gap-1 mb-4">
+        <span class="w-full h-1.5 rounded-full bg-emerald-500"></span>
+        <span class="w-full h-1.5 rounded-full bg-emerald-500"></span>
+        <span class="w-full h-1.5 rounded-full bg-red-500"></span>
+        <span class="w-full h-1.5 rounded-full bg-blue-500 ring-2 ring-blue-400/40"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+      </div>
+
+      <!-- Question Real Realistic Graphic / Scenario View -->
+      <div class="glass-card rounded-2xl overflow-hidden mb-4 border border-slate-700/60">
+        <!-- Realistic Intersection Situation -->
+        <div class="relative h-44 bg-[#141A28] flex items-center justify-center overflow-hidden">
+          <!-- Realistic asphalt and intersection markings -->
+          <svg class="w-full h-full" viewBox="0 0 360 200" preserveAspectRatio="none">
+            <!-- Road surface -->
+            <rect width="360" height="200" fill="#1E2330"/>
+            <!-- Road borders -->
+            <line x1="0" y1="20" x2="360" y2="20" stroke="#334155" stroke-width="4"/>
+            <line x1="0" y1="180" x2="360" y2="180" stroke="#334155" stroke-width="4"/>
+            <!-- Lane divider markings -->
+            <line x1="0" y1="100" x2="360" y2="100" stroke="#F8FAFC" stroke-width="2" stroke-dasharray="14 10" opacity="0.6"/>
+            <!-- Pedestrian crossing / zebra -->
+            <rect x="230" y="24" width="10" height="152" fill="#F1F5F9" opacity="0.4"/>
+            <rect x="250" y="24" width="10" height="152" fill="#F1F5F9" opacity="0.4"/>
+            <rect x="270" y="24" width="10" height="152" fill="#F1F5F9" opacity="0.4"/>
+          </svg>
+
+          <!-- Authentic Road Sign 2.4 "Yo'l bering" (Give way / Triangle inverted) -->
+          <div class="absolute left-6 top-5 flex flex-col items-center sign-shadow">
+            <svg width="44" height="40" viewBox="0 0 100 90">
+              <polygon points="50,85 5,10 95,10" fill="#FFFFFF" stroke="#DC2626" stroke-width="12" stroke-linejoin="round"/>
+            </svg>
+            <span class="text-[9px] font-mono text-slate-400 mt-1">2.4-belgi</span>
+          </div>
+
+          <!-- Realistic Car A (Ko'k Sedan - asosiy yo'lda) -->
+          <div class="absolute left-24 bottom-14 flex items-center gap-1.5">
+            <div class="px-1.5 py-0.5 rounded bg-blue-600 text-white font-mono text-[9px] font-bold">A</div>
+            <div class="w-20 h-9 rounded-lg bg-gradient-to-r from-blue-700 to-blue-500 border border-blue-400/40 shadow-lg relative flex items-center justify-between px-2">
+              <span class="w-1 h-3 rounded-sm bg-amber-400"></span>
+              <span class="text-[10px] text-white/90 font-mono font-bold tracking-tight">SEDAN</span>
+              <span class="w-1.5 h-3.5 rounded-sm bg-red-500"></span>
+            </div>
+          </div>
+
+          <!-- Realistic Car B (Qora Crossover - aylanmadan chiqmoqda) -->
+          <div class="absolute right-14 top-8 flex items-center gap-1.5">
+            <div class="w-20 h-9 rounded-lg bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-600 shadow-xl relative flex items-center justify-between px-2">
+              <span class="w-1.5 h-3.5 rounded-sm bg-red-500"></span>
+              <span class="text-[10px] text-slate-300 font-mono font-bold tracking-tight">SUV</span>
+              <span class="w-1 h-3 rounded-sm bg-amber-400"></span>
+            </div>
+            <div class="px-1.5 py-0.5 rounded bg-amber-600 text-white font-mono text-[9px] font-bold">B</div>
+          </div>
+
+          <!-- Direction Arrows Indicator -->
+          <div class="absolute right-6 bottom-4 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono text-slate-300 border border-slate-700">
+            Kamera burchagi: Yuqoridan (Top-View)
+          </div>
+        </div>
+
+        <!-- Question text -->
+        <div class="p-4 border-t border-slate-800">
+          <p class="text-xs text-blue-400 font-semibold mb-1 uppercase tracking-wide">3.5-band — Harakatlanish ustunligi</p>
+          <p class="text-sm font-semibold text-white leading-snug">
+            Ushbu chorrahada ko'k rangli «A» avtomobil haydovchisi qanday harakatlanishi shart?
+          </p>
+        </div>
+      </div>
+
+      <!-- Multiple Choice Options -->
+      <div class="space-y-2.5 mb-4" id="options-container">
+        <!-- Option 1 -->
+        <div class="quiz-option" onclick="handleSelectOption(this, false)">
+          <div class="badge-letter">A</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            Chorrahaga birinchi bo'lib to'xtamasdan o'tadi («O'ng qo'l» qoidasi bo'yicha).
+          </span>
+        </div>
+
+        <!-- Option 2 (Correct) -->
+        <div class="quiz-option" onclick="handleSelectOption(this, true)">
+          <div class="badge-letter">B</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            «Yo'l bering» (2.4) belgisi talabi bo'yicha «B» avtomobiliga yo'l beradi.
+          </span>
+        </div>
+
+        <!-- Option 3 -->
+        <div class="quiz-option" onclick="handleSelectOption(this, false)">
+          <div class="badge-letter">C</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            Tovush signali berib, tezlikni oshirib o'tib ketadi.
+          </span>
+        </div>
+
+        <!-- Option 4 -->
+        <div class="quiz-option" onclick="handleSelectOption(this, false)">
+          <div class="badge-letter">D</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            Faqat «B» avtomobil haydovchisi ruxsat bergandagina harakatlanadi.
+          </span>
+        </div>
+      </div>
+
+      <!-- Sharh & AI Real-Time Explanation (Tushuntirish) -->
+      <div id="exam-explanation" class="hidden glass-card rounded-xl p-4 border border-emerald-500/30 bg-emerald-950/20 mb-4 animate-fadeIn">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">
+              <span class="ic ">⚖</span>
+            </span>
+            <span class="text-xs font-bold text-emerald-400">Izoh:</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">Modda 2.4</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          2.4 «Yo'l bering» belgisi talabiga binoan haydovchi kesib o'tilayotgan qatnov qismida harakatlanayotgan transport vositasiga yo'l berishi shart. Demak, «A» transport vositasi «B» avtomobiliga to'liq yo'l berishi lozim.
+        </p>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
+          <button onclick="setScreen('ai')" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5">
+            <span class="ic ">☎</span> AI Ekspertdan qo'shimcha so'rash
+          </button>
+          <button class="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500">
+            Keyingi Savol <span class="ic text-[10px] ml-1">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. ACADEMY / YHQ TA'LIM ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-academy">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Rasmiy Ta'lim Dasturi</span>
+          <h2 class="text-lg font-bold text-white">YHQ Nazariy Kursi</h2>
+        </div>
+        <div class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-blue-400">
+          <span class="ic text-sm">✦</span>
+        </div>
+      </div>
+
+      <!-- Search bar -->
+      <div class="glass-card rounded-xl px-3.5 py-2.5 flex items-center gap-2.5 mb-4 border border-slate-800">
+        <span class="ic text-slate-500 text-xs">⌕</span>
+        <input 
+          type="text" 
+          placeholder="YHQ moddasi, yo'l belgisi yoki qoida qidirish..." 
+          class="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none w-full"
+        />
+      </div>
+
+      <!-- Syllabus Modules List -->
+      <div class="space-y-3">
+        <!-- 1 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                01
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Umumiy Qoidalar va Atamalar</h4>
+                <p class="text-[11px] text-slate-400">Haydovchi, piyoda, t/v va yo'l tushunchalari</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 14 dars</span>
+                  <span><span class="ic text-emerald-400 mr-1">✓</span> Bajarildi</span>
+                </div>
+              </div>
+            </div>
+            <span class="ic text-emerald-400 text-base">✓</span>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                02
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Yo'l Belgilari & Chiziqlari</h4>
+                <p class="text-[11px] text-slate-400">Ogohlantiruvchi, imtiyoz, taqiqlovchi, buyuruvchi</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 28 dars</span>
+                  <span class="text-amber-400 font-semibold">O'rganilmoqda (72%)</span>
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-mono font-bold text-amber-400">72%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-3 overflow-hidden">
+            <div class="bg-amber-400 h-full rounded-full w-[72%]"></div>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                03
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Svetofor va Tartibga Soluvchi</h4>
+                <p class="text-[11px] text-slate-400">Tartibga soluvchining qo'l ishoralari va signallari</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 10 dars</span>
+                  <span class="text-slate-500">Boshlanmagan</span>
+                </div>
+              </div>
+            </div>
+            <span class="ic text-slate-600 text-sm">⚿</span>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                04
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Tezlik va Xavfsiz Masofa</h4>
+                <p class="text-[11px] text-slate-400">Aholi punktlarida va magistral yo'llarda harakat</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 16 dars</span>
+                  <span class="text-slate-500">Boshlanmagan</span>
+                </div>
+              </div>
+            </div>
+            <span class="ic text-slate-600 text-sm">⚿</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. 4K VIDEO MASTERCLASSES ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-video">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">AvtoO’quvchi</span>
+          <h2 class="text-lg font-bold text-white">Professional Video Darslar</h2>
+        </div>
+        <span class="px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-400 text-[10px] font-mono font-bold">4K HDR</span>
+      </div>
+
+      <!-- Main Featured Video Player Box -->
+      <div class="rounded-2xl overflow-hidden glass-card border border-slate-800 mb-5 relative group">
+        <div class="relative h-48 w-full bg-slate-900">
+          <div class="w-full h-full  opacity-80 group-hover:scale-102 transition duration-500" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-transparent to-black/40"></div>
+          
+          <!-- Central Play Button -->
+          <button class="absolute inset-0 m-auto w-14 h-14 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-2xl shadow-blue-600/50 hover:bg-blue-500 hover:scale-110 transition border border-white/20">
+            <span class="ic text-lg ml-1">▶</span>
+          </button>
+
+          <!-- Video Badges -->
+          <div class="absolute top-3 left-3 flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-white text-[10px] font-mono border border-white/10">
+              Mavzu 08
+            </span>
+            <span class="px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold">
+              AMALIYOT
+            </span>
+          </div>
+
+          <div class="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/80 font-mono text-[10px] text-white">
+            18:45
+          </div>
+        </div>
+
+        <div class="p-4">
+          <h3 class="text-sm font-bold text-white mb-1">
+            Murakkab Aylanma Harakatda (Krug) To'g'ri Qator Tanlash
+          </h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-3">
+            Haqiqiy shahar sharoitida instruktor sharhi bilan: aylanmaga kirish, burilish chiroqlarini yoqish va chiqish qoidalari.
+          </p>
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
+            <span class="flex items-center gap-1.5 text-slate-300">
+              <span class="ic text-blue-400">☺</span> Inst. R. Samadov
+            </span>
+            <span class="font-mono text-[11px]">14.2k ko'rishlar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Playlist items -->
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tavsiya Etilgan Videolar</h3>
+      
+      <div class="space-y-2.5">
+        <!-- Item 1 -->
+        <div class="glass-card-interactive p-2.5 rounded-xl flex items-center gap-3 cursor-pointer">
+          <div class="relative w-24 h-16 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0">
+            <div class="w-full h-full " style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+            <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <span class="ic text-xs text-white">▶</span>
+            </div>
+            <span class="absolute bottom-1 right-1 px-1 rounded bg-black/80 text-[9px] font-mono text-white">12:10</span>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white line-clamp-1">Paralel Parkovka Qilish Algoritmi</h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">Avtodrom imtihonini 1-urinishda topshirish</p>
+            <span class="text-[10px] text-blue-400 font-mono mt-1 inline-block">Avtodrom #03</span>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="glass-card-interactive p-2.5 rounded-xl flex items-center gap-3 cursor-pointer">
+          <div class="relative w-24 h-16 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0">
+            <div class="w-full h-full " style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+            <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <span class="ic text-xs text-white">▶</span>
+            </div>
+            <span class="absolute bottom-1 right-1 px-1 rounded bg-black/80 text-[9px] font-mono text-white">15:20</span>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white line-clamp-1">Teng Huquqli Chorrahada O'tish</h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">3D grafik simulyatsiya va tahlil</p>
+            <span class="text-[10px] text-emerald-400 font-mono mt-1 inline-block">Nazariya #09</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. AI INSTRUCTOR (GEMINI 24/7) ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-ai">
+      <!-- AI Header -->
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+              <span class="ic text-lg">⬢</span>
+            </div>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0B0F19]"></span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+              AI Yo'l Instruktori
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">24/7</span>
+            </h3>
+            <p class="text-[11px] text-slate-400">Yo’l harakati qoidalari bo’yicha murabbiy</p>
+          </div>
+        </div>
+        <button class="text-xs text-slate-400 hover:text-white">
+          <span class="ic ">↻</span>
+        </button>
+      </div>
+
+      <!-- Dialogue Stream -->
+      <div class="space-y-3.5 mb-24">
+        <!-- AI welcome message -->
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xs flex-shrink-0 mt-0.5">
+            <span class="ic ">⛨</span>
+          </div>
+          <div class="glass-card p-3.5 rounded-2xl rounded-tl-sm text-xs leading-relaxed text-slate-200 border border-slate-800 max-w-[85%]">
+            Assalomu alaykum, <span class="uFirst"></span>! Men sizning 24/7 shaxsiy YHQ instruktoringizman. Test savollari, noaniq chorrahalar yoki jarimalar to'g'risida istalgan savolingizni bering.
+          </div>
+        </div>
+
+        <!-- User question -->
+        <div class="flex justify-end">
+          <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-sm text-xs max-w-[85%] leading-relaxed shadow-lg shadow-blue-600/20">
+            Aylanma harakat (krug)ga kirayotganda chap burilish chirog'ini yoqish shartmi?
+          </div>
+        </div>
+
+        <!-- AI structured answer -->
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xs flex-shrink-0 mt-0.5">
+            <span class="ic ">⛨</span>
+          </div>
+          <div class="glass-card p-3.5 rounded-2xl rounded-tl-sm text-xs leading-relaxed text-slate-200 border border-slate-800 max-w-[90%]">
+            <p class="font-bold text-blue-400 mb-1 flex items-center gap-1.5">
+              <span class="ic ">⚖</span> YHQ 9.1 & 9.2-bandlariga ko'ra:
+            </p>
+            <p class="mb-2">
+              <strong class="text-white">Yo'q, shart emas!</strong> Aylanmaga kirish odatda o'ng tomonga burilish bilan amalga oshiriladi. Shu sababli:
+            </p>
+            <ul class="space-y-1 text-slate-300 pl-2 border-l border-blue-500/30 mb-2">
+              <li>• Aylanmaga kirishda: <span class="text-emerald-400 font-semibold">O'ng chiroq</span> yoqiladi.</li>
+              <li>• Aylanma bo'ylab harakatda qator almashtirmasangiz: <span class="text-slate-400">Hech qanday chiroq yoqilmaydi.</span></li>
+              <li>• Chiqishda: Yana <span class="text-emerald-400 font-semibold">O'ng chiroq</span> yoqiladi.</li>
+            </ul>
+            <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <span>Ishonchlilik: 99.8%</span>
+              <span class="text-blue-400 cursor-pointer">Batafsil sharh →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt suggestions -->
+        <div class="flex gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-300">
+          <span class="px-3 py-1.5 rounded-xl glass-card whitespace-nowrap cursor-pointer hover:border-blue-400/40">
+            «O'ng qo'l» qoidasi nima?
+          </span>
+          <span class="px-3 py-1.5 rounded-xl glass-card whitespace-nowrap cursor-pointer hover:border-blue-400/40">
+            Svetofor va belgi ziddiyati?
+          </span>
+        </div>
+      </div>
+
+      <!-- AI Fixed Input Bar inside Mockup -->
+      <div class="absolute bottom-20 left-4 right-4 z-30">
+        <div class="glass-card rounded-2xl p-2 flex items-center gap-2 border border-blue-500/30 bg-[#0B0F19]/90 shadow-2xl">
+          <input 
+            type="text" 
+            placeholder="YHQ bo'yicha savolingizni yozing..." 
+            class="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none flex-1 px-3"
+          />
+          <button class="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition shadow-lg shadow-blue-600/40">
+            <span class="ic text-xs">↑</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 6. DRIVER ID & PROFILE ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-license">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Elektron Talaba ID</span>
+          <h2 class="text-lg font-bold text-white">Haydovchilik Profili</h2>
+        </div>
+        <button onclick="logout()" title="Chiqish" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-slate-300">
+          <span class="ic text-sm">⏻</span>
+        </button>
+      </div>
+
+      <!-- Realistic Digital Driver's License Card -->
+      <div class="relative rounded-2xl p-5 mb-5 overflow-hidden border border-blue-400/30 shadow-2xl bg-gradient-to-br from-[#0F1E3A] via-[#0E1726] to-[#0A0D14]">
+        <div class="absolute top-0 right-0 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-5 rounded bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">UZB</span>
+            <span class="text-xs font-bold text-slate-200 tracking-wider">HAYDOVCHILIK GUVOHNOMASI</span>
+          </div>
+          <span class="ic text-blue-400 text-sm">▰</span>
+        </div>
+
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-16 h-20 rounded-xl  border border-slate-600 shadow-md" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+          <div class="space-y-1">
+            <p class="text-[10px] text-slate-400 uppercase font-mono">Familiyasi / Ismi</p>
+            <h3 class="text-sm font-bold text-white tracking-tight"><span class="uFull"></span></h3>
+            <p class="text-[10px] text-slate-400 uppercase font-mono pt-1">Toifasi</p>
+            <div class="inline-flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-blue-500/30 text-blue-300 font-mono font-bold text-xs border border-blue-400/40">B</span>
+              <span class="text-[10px] text-slate-400 font-mono">Yengil avtomobil</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-400">
+          <span>KOD: <span id="uCode"></span></span>
+          <span class="text-emerald-400 font-bold">HOLATI: <span id="uState"></span></span>
+        </div>
+      </div>
+
+      <!-- Statistics Telemetry -->
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">O'zlashtirish Telemetriyasi</h3>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="glass-card p-3.5 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-mono">Biletlar Muvaffaqiyati</span>
+          <p class="text-xl font-bold text-emerald-400 hud-font mt-1"><span id="lAcc"></span></p>
+          <span class="text-[10px] text-slate-500"><span id="lN"></span> ta savol yechildi</span>
+        </div>
+        <div class="glass-card p-3.5 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-mono">Qayd etilgan Xatolar</span>
+          <p class="text-xl font-bold text-amber-400 hud-font mt-1"><span id="lW"></span> ta</p>
+          <span class="text-[10px] text-slate-500">Xatolar ustida ishlash →</span>
+        </div>
+      </div>
+
+      <!-- Settings & Action List -->
+      <div class="glass-card rounded-2xl overflow-hidden border border-slate-800 divide-y divide-slate-800/80">
+        <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-3">
+            <span class="ic text-amber-400 text-sm">⚠</span>
+            <span class="text-xs font-semibold text-white">Mening Xatolarim Banki (<span id="lW2"></span>)</span>
+          </div>
+          <span class="ic text-slate-600 text-[10px]">›</span>
+        </div>
+        <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-3">
+            <span class="ic text-blue-400 text-sm">↺</span>
+            <span class="text-xs font-semibold text-white">Sinov Imtihonlari Tarixi</span>
+          </div>
+          <span class="ic text-slate-600 text-[10px]">›</span>
+        </div>
+        <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-3">
+            <span class="ic text-purple-400 text-sm">文</span>
+            <span class="text-xs font-semibold text-white">Til: O'zbekcha (Lotin)</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">O'zgartirish</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone Bottom Navigation Bar -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-misc"><div id="misc"></div></div>
+<div class="screen relative z-10 px-5 pt-6" id="screen-auto"></div>
+<div class="nav-bar" id="anav" style="display:none"><button onclick="admin('apps')" class="nav-btn" data-t="apps"><svg viewBox="0 0 24 24"><path d="M19 3H4.99c-1.11 0-1.98.89-1.98 2L3 19c0 1.1.88 2 1.99 2H19c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm0 12h-4c0 1.66-1.35 3-3 3s-3-1.34-3-3H4.99V5H19v10z"/></svg><span>Arizalar</span></button><button onclick="admin('all')" class="nav-btn" data-t="all"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>A'zolar</span></button><button onclick="admin('add')" class="nav-btn" data-t="add"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span>Qo'shish</span></button><button onclick="admin('set')" class="nav-btn" data-t="set"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 5v-2l-2.1-.7a7 7 0 00-.6-1.5l1-2-1.4-1.4-2 1a7 7 0 00-1.5-.6L14 3h-2l-.7 2.1a7 7 0 00-1.5.6l-2-1L6.4 6.1l1 2a7 7 0 00-.6 1.5L5 11v2l2.1.7c.1.5.3 1 .6 1.5l-1 2 1.4 1.4 2-1c.5.3 1 .5 1.5.6L12 21h2l.7-2.1c.5-.1 1-.3 1.5-.6l2 1 1.4-1.4-1-2c.3-.5.5-1 .6-1.5L21 13z"/></svg><span>Sozlamalar</span></button></div>
+<div class="nav-bar" id="stnav">
+      <button onclick="setScreen('home')" class="nav-btn active" id="btn-home">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Asosiy</span>
+      </button>
+      <button onclick="setScreen('exam')" class="nav-btn" id="btn-exam">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+        <span>Imtihon</span>
+      </button>
+      <button onclick="setScreen('academy')" class="nav-btn" id="btn-academy">
+        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.2v6L12 21l7-3.8v-6l2-1.1V17h2V9L12 3z"/></svg>
+        <span>YHQ</span>
+      </button>
+      <button onclick="setScreen('video')" class="nav-btn" id="btn-video">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>Video</span>
+      </button>
+      <button onclick="setScreen('ai')" class="nav-btn" id="btn-ai">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <span>AI Yordam</span>
+      </button>
+      <button onclick="setScreen('license')" class="nav-btn" id="btn-license">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM9 7.5a2 2 0 110 4 2 2 0 010-4zM14 16.5H4v-1c0-1.7 3.3-2.5 5-2.5s5 .8 5 2.5v1zm6-2h-4V13h4v1.5zm0-3h-4V10h4v1.5z"/></svg>
+        <span>ID Karta</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const IN="w-full bg-slate-900/70 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 mb-3",BT="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition",B2="w-full py-3 rounded-xl glass-card text-slate-200 font-semibold text-sm hover:border-blue-400/40 transition",LB="block text-[10px] uppercase font-mono tracking-wider text-slate-400 mb-1";
+function toast(m){const d=document.createElement("div");d.className="glass-card text-xs text-white rounded-xl p-3 border border-emerald-500/40";d.style.cssText="position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(420px,92vw);z-index:9999;background:#0f172a";d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),12000)}
+let ATOK=null,tm=null;try{ATOK=sessionStorage.getItem("av_at")}catch(e){}
+const fmt=v=>{const d=String(v||"").replace(/\D/g,"").slice(0,9);return[d.slice(0,2),d.slice(2,5),d.slice(5,7),d.slice(7,9)].filter(Boolean).join(" ")};
+const misc=h=>{$("#misc").innerHTML=h;$$(".screen").forEach(s=>s.classList.remove("active"));$("#screen-misc").classList.add("active");$("#stnav").style.display="none";$("#anav").style.display="none";$("#screen-misc").scrollTop=0};
+async function api(p,o={}){const h={"Content-Type":"application/json"};if(ATOK)h.Authorization="Bearer "+ATOK;const r=await fetch(p,{method:o.method||"GET",headers:h,body:o.body?JSON.stringify(o.body):undefined});let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.error||"Xatolik yuz berdi"),{status:r.status});return j}
+const setAt=t=>{ATOK=t;try{t?sessionStorage.setItem("av_at",t):sessionStorage.removeItem("av_at")}catch(e){}};
+function alogin(){misc(`<div class="pt-8"><div class="glass-card rounded-2xl p-5 mb-5 border border-blue-500/20"><div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-xl mb-3 shadow-lg shadow-blue-500/30">⛨</div><h2 class="text-xl font-extrabold text-white">Admin paneli</h2><p class="text-xs text-slate-400 mt-1">AvtoO’quvchi boshqaruv markazi</p></div>
+<label class="${LB}">Login</label><input id="lg" class="${IN}" autocapitalize="none" autocomplete="username"><label class="${LB}">Parol</label><input id="pw" type="password" class="${IN}" autocomplete="current-password" onkeydown="if(event.key==='Enter')doALogin()"><p id="er" class="text-xs text-red-400 min-h-[18px] mb-2"></p><button class="${BT}" onclick="doALogin()">Kirish</button></div>`)}
+async function doALogin(){try{const r=await api("/api/admin/login",{method:"POST",body:{login:$("#lg").value.trim(),password:$("#pw").value}});setAt(r.token);admin("apps")}catch(e){$("#er").textContent=e.message}}
+function logout(){api("/api/admin/logout",{method:"POST"}).catch(()=>{});setAt(null);alogin()}
+const fd=t=>{if(!t)return"—";const d=new Date(t),p=n=>String(n).padStart(2,"0");return p(d.getDate())+"."+p(d.getMonth()+1)+"."+d.getFullYear()+" "+p(d.getHours())+":"+p(d.getMinutes())};
+let AT="apps",AF="all",AQ="",AX=null,ADATA=[];
+const ST=s=>!s.v?["Kirmagan","bg-slate-700/40 text-slate-300 border-slate-600"]:s.ap===1?["Tasdiqlangan","bg-emerald-500/10 text-emerald-400 border-emerald-500/30"]:s.ap===-1?["Rad etilgan","bg-red-500/10 text-red-400 border-red-500/30"]:["Yangi ariza","bg-amber-500/10 text-amber-400 border-amber-500/30"];
+const rk=s=>!s.v?3:s.ap===1?1:s.ap===-1?2:0;
+const cat=s=>!s.v?"no":s.ap===1?"ok":s.ap===-1?"rej":"new";
+function mc(s){const st=ST(s),open=AX===s.id,acc=s.n?Math.round(s.ok/s.n*100)+"%":"—",b="px-2 py-2 rounded-lg text-[11px] font-semibold border ";
+return `<div class="glass-card rounded-xl p-3.5 border ${cat(s)==="new"?"border-amber-500/30":"border-slate-800"}"><div class="flex items-center justify-between gap-2 cursor-pointer" data-id="${esc(s.id)}" onclick="AX=AX===this.dataset.id?null:this.dataset.id;$('#alist').innerHTML=listH()"><div class="min-w-0"><p class="text-xs font-bold text-white truncate">${s.v?esc(s.first)+" "+esc(s.last):'<span class="text-slate-400">Hali kirmagan</span>'}</p><p class="text-[10px] hud-font text-blue-400">${esc(s.id)}${s.v?" · +998 "+esc(fmt(s.phone)):""}</p></div><span class="px-2 py-0.5 rounded-md border text-[10px] font-semibold whitespace-nowrap ${st[1]}">${st[0]}</span></div>
+${open?`<div class="mt-3 pt-3 border-t border-slate-800 grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]"><div><span class="text-slate-500">Avtomaktab</span><p class="text-slate-200">${s.v?(s.school?"O’qigan":"O’qimagan"):"—"}</p></div><div><span class="text-slate-500">Ariza vaqti</span><p class="text-slate-200 hud-font">${fd(s.sub)}</p></div><div><span class="text-slate-500">Yaratilgan</span><p class="text-slate-200 hud-font">${fd(s.at)}</p></div><div><span class="text-slate-500">Oxirgi faollik</span><p class="text-slate-200 hud-font">${fd(s.act)}</p></div><div><span class="text-slate-500">Yechilgan savol</span><p class="text-slate-200 hud-font">${s.n||0}</p></div><div><span class="text-slate-500">Aniqlik</span><p class="text-slate-200 hud-font">${acc}</p></div><div><span class="text-slate-500">Imtihon sanasi</span><p class="text-slate-200 hud-font">${esc(s.exam||"—")}</p></div></div>
+<div class="grid grid-cols-2 gap-2 mt-3" data-id="${esc(s.id)}">${s.v&&s.ap!==1?`<button class="${b}bg-emerald-500/10 border-emerald-500/30 text-emerald-400" onclick="act('ok',this.parentNode.dataset.id)">✓ Tasdiqlash</button>`:""}${s.v&&s.ap!==-1?`<button class="${b}bg-red-500/10 border-red-500/30 text-red-400" onclick="act('rej',this.parentNode.dataset.id)">✗ Rad etish</button>`:""}<button class="${b}glass-card text-slate-200" onclick="act('pw',this.parentNode.dataset.id)">↻ Yangi parol</button><button class="${b}glass-card text-slate-400" onclick="act('del',this.parentNode.dataset.id)">O’chirish</button></div>`:""}</div>`}
+function listH(){const q=AQ.toLowerCase().trim();let a=[...ADATA];if(AT==="apps")a=a.filter(s=>cat(s)==="new");else{if(AF!=="all")a=a.filter(s=>cat(s)===AF);if(q)a=a.filter(s=>(s.id+(s.first||"")+(s.last||"")+(s.phone||"")).toLowerCase().includes(q))}
+a.sort((x,y)=>rk(x)-rk(y)||(y.sub||y.at||0)-(x.sub||x.at||0));return a.map(mc).join("")||`<p class="text-xs text-slate-500 text-center py-6">${AT==="apps"?"Yangi ariza yo’q":"Hech narsa topilmadi"}</p>`}
+async function admin(t,cred=""){if(t){AT=t;AX=null}clearInterval(tm);
+let cfg={};try{const r0=await api("/api/admin/students");ADATA=r0.students;cfg=r0.cfg}catch(e){if(e.status===401||e.status===403){setAt(null);return alogin()}toast("Ma’lumotlarni o’qib bo’lmadi: "+e.message)}const a=ADATA,n=c=>a.filter(s=>cat(s)===c).length,sc=(l,v,c)=>`<div class="glass-card p-3.5 rounded-xl"><span class="text-[10px] text-slate-400 uppercase font-mono">${l}</span><p class="text-xl font-bold ${c} hud-font mt-1">${v}</p></div>`;
+const tmp=cfg.tmp?`<div class="rounded-xl bg-amber-500/10 border border-amber-500/30 p-3 mb-4 text-[11px] text-amber-300">⚠ Vaqtinchalik login/paroldan foydalanyapsiz. <span class="underline cursor-pointer" onclick="admin('set')">Sozlamalar</span> bo’limida o’zgartiring.</div>`:"";
+const hd=`<div class="flex items-center justify-between mb-4"><div><span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Boshqaruv markazi</span><h2 class="text-lg font-bold text-white">Admin paneli</h2></div><div class="flex gap-2"><button class="w-9 h-9 rounded-xl glass-card text-slate-300" onclick="admin()" title="Yangilash">↻</button><button class="w-9 h-9 rounded-xl glass-card text-slate-300" onclick="logout()" title="Chiqish">⏻</button></div></div>${tmp}<a href="/" target="_blank" rel="noopener" class="${B2} block text-center mb-4">👁 O’quvchi panelini ochish</a>`;
+const stats=`<div class="grid grid-cols-2 gap-3 mb-4">${sc("Jami a’zolar",a.length,"text-white")}${sc("Yangi arizalar",n("new"),"text-amber-400")}${sc("Tasdiqlangan",n("ok"),"text-emerald-400")}${sc("Kirmagan",n("no"),"text-slate-400")}</div>`;
+const crd=cred?`<div class="rounded-xl bg-emerald-950/30 border border-emerald-500/30 p-3 mb-4"><p class="text-[10px] text-slate-400 mb-1">Parol faqat hozir ko’rinadi. Nusxalab oling:</p><p class="hud-font text-xs text-white">Login: <b>${cred[0]}</b></p><p class="hud-font text-xs text-white mb-2">Parol: <b>${cred[1]}</b></p><button class="${B2}" onclick="navigator.clipboard&&navigator.clipboard.writeText('Login: ${cred[0]}\\nParol: ${cred[1]}');toast('Nusxalandi')">Nusxalash</button></div>`:"";
+let body="";
+if(AT==="apps")body=`<h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Yangi arizalar (${n("new")})</h3><div id="alist" class="space-y-2.5">${listH()}</div>`;
+if(AT==="all")body=`<input class="${IN}" placeholder="Ism, login yoki telefon qidirish..." value="${esc(AQ)}" oninput="AQ=this.value;$('#alist').innerHTML=listH()"><div class="flex gap-1.5 overflow-x-auto pb-2 mb-2 text-[11px]">${[["all","Barchasi"],["new","Yangi"],["ok","Tasdiqlangan"],["rej","Rad"],["no","Kirmagan"]].map(([k,l])=>`<span onclick="AF='${k}';admin()" class="px-3 py-1.5 rounded-xl whitespace-nowrap cursor-pointer ${AF===k?"bg-blue-600 text-white":"glass-card text-slate-300"}">${l}</span>`).join("")}</div><div id="alist" class="space-y-2.5">${listH()}</div>`;
+if(AT==="add")body=`<div class="glass-card rounded-2xl p-4 border border-blue-500/20"><p class="text-xs font-bold text-white mb-1">Yangi o’quvchi qo’shish</p><p class="text-[11px] text-slate-400 mb-3">Login va parol avtomatik yaratiladi. O’quvchi birinchi kirishda ariza to’ldiradi.</p><button class="${BT}" onclick="addS()">+ Login va parol yaratish</button></div>`;
+if(AT==="set")body=`<div class="glass-card rounded-2xl p-4"><p class="text-xs font-bold text-white mb-3">Admin login va parolni o’zgartirish</p><label class="${LB}">Yangi login</label><input id="nl" class="${IN}" value="${esc(cfg.login)}" autocapitalize="none"><label class="${LB}">Yangi parol (kamida 8 belgi)</label><input id="np" type="password" class="${IN}"><label class="${LB}">Parolni takrorlang</label><input id="np2" type="password" class="${IN}"><p id="er" class="text-xs text-red-400 min-h-[18px] mb-2"></p><button class="${BT}" onclick="saveCfg()">Saqlash</button></div><p class="text-[11px] text-slate-500 mt-3">Ma’lumotlar serverda saqlanadi</p>`;
+misc(`<div class="pt-4">${hd}${AT==="apps"||AT==="all"?stats:""}${crd}${body}</div>`);
+$("#anav").style.display="flex";$$("#anav .nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.t===AT));$("#anav [data-t=apps] span").textContent="Arizalar"+(n("new")?" ("+n("new")+")":"")}
+async function act(k,id){try{if(k==="ok"||k==="rej")await api("/api/admin/students/"+id,{method:"PATCH",body:{ap:k==="ok"?1:-1}});
+if(k==="del"){if(!confirm(id+" o’chirilsinmi?"))return;await api("/api/admin/students/"+id,{method:"DELETE"})}
+if(k==="pw"){const r=await api("/api/admin/students/"+id+"/password",{method:"POST"}),s=ADATA.find(x=>x.id===id)||{};return admin(AT,[id.startsWith("tel")?"+998 "+fmt(s.phone):id,r.password])}}catch(e){toast("Bajarib bo’lmadi: "+e.message)}admin()}
+async function addS(){try{const r=await api("/api/admin/students",{method:"POST"});admin("add",[r.id,r.password])}catch(e){toast("Saqlab bo’lmadi: "+e.message)}}
+async function saveCfg(){const l=$("#nl").value.trim().toLowerCase(),p=$("#np").value,er=$("#er");if(!/^[a-z0-9_]{4,20}$/.test(l)||l.startsWith("avto")||l.startsWith("tel"))return er.textContent="Login 4–20 belgi (lotin harf, raqam, _) bo’lsin, “avto” yoki “tel” bilan boshlanmasin";if(p.length<8)return er.textContent="Parol kamida 8 belgi bo’lsin";if(p!==$("#np2").value)return er.textContent="Parollar bir xil emas";
+try{await api("/api/admin/config",{method:"PUT",body:{login:l,password:p}});toast("✓ Saqlandi. Keyingi kirishda yangi login va paroldan foydalaning.");admin()}catch(e){er.textContent="Saqlab bo’lmadi: "+e.message}}
+(function(){alogin();(async()=>{if(ATOK)try{await admin("apps")}catch(e){setAt(null);alogin()}})()})();
+
+</script>
+</body>
+</html>

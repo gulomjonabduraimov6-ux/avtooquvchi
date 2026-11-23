@@ -1,0 +1,19 @@
+# Render.com uchun tayyor sozlama (Blueprint). Admin parolini joylash paytida o'zingiz kiritasiz.
+services:
+  - type: web
+    name: avtooquvchi
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: SMS_PROVIDER
+        value: demo
+      - key: ADMIN_LOGIN
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false

@@ -1,0 +1,10 @@
+{
+  "name": "avtooquvchi",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --env-file=.env server.js"
+  }
+}

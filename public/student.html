@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AvtoO’quvchi</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+  <style>
+    400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #060913;
+      color: #F8FAFC;
+    }
+
+    .hud-font { font-family: 'JetBrains Mono', monospace; }
+
+    /* Phone casing */
+    .phone-mockup {
+      width: 390px;
+      height: 844px;
+      background: #0B0F19;
+      border-radius: 52px;
+      border: 8px solid #1E293B;
+      box-shadow: 
+        0 0 0 2px rgba(255, 255, 255, 0.08),
+        0 25px 60px -15px rgba(0, 0, 0, 0.9),
+        0 0 50px rgba(37, 99, 235, 0.15);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dynamic Island */
+    .dynamic-island {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .screen {
+      display: none;
+      height: 100%;
+      width: 100%;
+      overflow-y: auto;
+      padding-bottom: 90px;
+    }
+    .screen.active {
+      display: block;
+      animation: screenFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .screen::-webkit-scrollbar { width: 0; }
+
+    @keyframes screenFade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Glass surfaces */
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .glass-card-interactive {
+      background: rgba(22, 30, 49, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .glass-card-interactive:hover {
+      background: rgba(30, 41, 59, 0.85);
+      border-color: rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Bottom Navigation */
+    .nav-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: rgba(11, 15, 25, 0.94);
+      backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 10px 14px 10px;
+      z-index: 100;
+    }
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: #64748B;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: none;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+    .nav-btn.active {
+      color: #38BDF8;
+    }
+    .nav-btn.active i {
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.5));
+    }
+
+    /* Option button styling */
+    .quiz-option {
+      background: rgba(17, 24, 39, 0.6);
+      border: 1.5px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .quiz-option:hover {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .quiz-option.correct {
+      background: rgba(16, 185, 129, 0.15) !important;
+      border-color: #10B981 !important;
+    }
+    .quiz-option.wrong {
+      background: rgba(239, 68, 68, 0.15) !important;
+      border-color: #EF4444 !important;
+    }
+    .quiz-option.correct .badge-letter {
+      background: #10B981;
+      color: #fff;
+    }
+    .quiz-option.wrong .badge-letter {
+      background: #EF4444;
+      color: #fff;
+    }
+
+    .badge-letter {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #94A3B8;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    /* Tab switcher on desktop view */
+    .view-tab {
+      padding: 9px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .view-tab.active {
+      color: #fff;
+      background: #2563EB;
+      border-color: #3B82F6;
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Ambient automotive mesh */
+    .ambient-bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.5) 0%, transparent 100%);
+      z-index: 1;
+    }
+
+    /* Realistic road sign SVG frame */
+    .sign-shadow {
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.6));
+    }
+  
+:root{color-scheme:dark}.ic{font-style:normal;display:inline-block;font-family:system-ui,"Segoe UI Symbol",sans-serif;line-height:1}
+.nav-btn svg{width:22px;height:22px;fill:currentColor}.nav-btn.active svg{filter:drop-shadow(0 0 8px rgba(56,189,248,.5))}
+body>.mb-6{display:none!important}@media(max-width:767px){body{padding:0!important;display:block!important;min-height:100dvh}.sbar,.dynamic-island{display:none!important}
+.phone-mockup{width:100%;height:100dvh;border:0;border-radius:0;box-shadow:none}.screen{padding-top:calc(env(safe-area-inset-top,0px) + 20px)}.nav-bar{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));height:calc(80px + env(safe-area-inset-bottom,0px))}}
+</style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center min-h-screen justify-center bg-[#05070E]">
+
+  <!-- Top bar controls for evaluation -->
+  <div class="mb-6 flex flex-col items-center gap-3">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        <span class="ic text-[10px]">⛨</span> Davlat YHQ Standarti 2026
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span class="ic text-[10px]">⬢</span> Claude AI Yordamchi
+      </span>
+    </div>
+    <div class="flex flex-wrap justify-center gap-2">
+      <button onclick="setScreen('home')" id="tab-home" class="view-tab active">
+        <span class="ic mr-1.5">◎</span> Boshqaruv
+      </button>
+      <button onclick="setScreen('exam')" id="tab-exam" class="view-tab">
+        <span class="ic mr-1.5">☑</span> Imtihon Simulyatori
+      </button>
+      <button onclick="setScreen('academy')" id="tab-academy" class="view-tab">
+        <span class="ic mr-1.5">▤</span> YHQ Kursi
+      </button>
+      <button onclick="setScreen('video')" id="tab-video" class="view-tab">
+        <span class="ic mr-1.5">▶</span> 4K Video Darslar
+      </button>
+      <button onclick="setScreen('ai')" id="tab-ai" class="view-tab">
+        <span class="ic mr-1.5">◈</span> AI Yo'riqchi (24/7)
+      </button>
+      <button onclick="setScreen('license')" id="tab-license" class="view-tab">
+        <span class="ic mr-1.5">▣</span> Profil & ID
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Screen Mockup -->
+  <div class="phone-mockup relative">
+    <div class="ambient-bg"></div>
+
+    <!-- Phone Top Status Bar -->
+    <div class="sbar relative z-50 pt-3 px-7 flex justify-between items-center text-xs text-slate-400 font-semibold select-none">
+      <span id="clk" class="hud-font text-white font-medium">09:41</span>
+      <!-- Dynamic Island inside header -->
+      <div class="dynamic-island">
+        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/90 animate-pulse"></div>
+        <span class="text-[9px] text-slate-300 hud-font tracking-wider">AI ACTIVE</span>
+        <div class="w-2.5 h-2.5 rounded-full bg-blue-500/60"></div>
+      </div>
+      <div class="flex items-center gap-2 text-white">
+        <span class="ic text-[10px]">▂▄▆</span>
+        <span class="ic text-[10px]">≋</span>
+        <span class="ic text-xs text-emerald-400">▮</span>
+      </div>
+    </div>
+
+    <!-- ==================== 1. DASHBOARD / HOME SCREEN ==================== -->
+    <div class="screen active relative z-10 px-5 pt-6" id="screen-home">
+      <!-- User Profile Header -->
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="w-12 h-12 rounded-2xl  border-2 border-blue-500/40 shadow-lg shadow-blue-500/20" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0B0F19] flex items-center justify-center">
+              <span class="ic text-[8px] text-black">✓</span>
+            </div>
+          </div>
+          <div>
+            <p class="text-[11px] font-semibold tracking-wider uppercase text-slate-400">Haydovchi Talaba</p>
+            <h2 class="text-base font-bold text-white tracking-tight flex items-center gap-1.5">
+              <span class="uName"></span>
+              <span class="text-[10px] px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 font-mono">B-KATEGORIYA</span>
+            </h2>
+          </div>
+        </div>
+        <button class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white transition">
+          <span class="ic text-sm">◔</span>
+        </button>
+      </div>
+
+      <!-- Main Readiness Gauge (Kokpit Telemetriya) -->
+      <div class="glass-card rounded-2xl p-5 mb-5 relative overflow-hidden border border-slate-800">
+        <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <span class="ic text-blue-400">◔</span> Imtihonga Tayyorgarlik
+            </div>
+            <div class="text-2xl font-extrabold text-white mt-0.5 hud-font">
+              <span id="rdv">0</span><span class="text-sm text-blue-400 font-normal">%</span>
+            </div>
+          </div>
+          <div class="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
+            <span class="ic text-[10px]">↗</span> Bugun: <span id="today">0</span> ta
+          </div>
+        </div>
+
+        <!-- Telemetry bar -->
+        <div class="w-full bg-slate-800/80 rounded-full h-2.5 p-0.5 mb-3.5 overflow-hidden">
+          <div class="bg-gradient-to-r from-blue-600 via-sky-400 to-emerald-400 h-full rounded-full shadow-lg shadow-sky-500/30" id="rdBar" style="width:0%;transition:width .8s"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-center">
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-medium">Yechilgan</p>
+            <p class="text-sm font-bold text-white hud-font"><span id="solved">0</span></p>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-medium">Xatolar</p>
+            <p class="text-sm font-bold text-white hud-font"><span id="wrongN">0</span> ta</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-400 uppercase font-medium">Muvaffaqiyat</p>
+            <p class="text-sm font-bold text-emerald-400 hud-font"><span id="acc">0%</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action: Davlat Imtihoni Simulyatori -->
+      <div 
+        onclick="startExam()"
+        class="group relative rounded-2xl overflow-hidden cursor-pointer mb-5 border border-blue-500/30 transition-all duration-300 hover:border-blue-400 shadow-xl"
+      >
+        <div class="absolute inset-0 bg-gradient-to-r from-[#0B1528] via-[#0D1D3A]/90 to-transparent z-10"></div>
+        <div class="absolute inset-0 w-full h-full  object-center group-hover:scale-105 transition-transform duration-700 opacity-60" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+        
+        <div class="relative z-20 p-5">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-600 text-white uppercase tracking-wider mb-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> Imtihon rejimi
+          </span>
+          <h3 class="text-lg font-bold text-white tracking-tight mb-1">
+            Imtihon Test
+          </h3>
+          <p class="text-xs text-slate-300 max-w-[210px] leading-relaxed mb-4">
+            20 ta savol, 20 daqiqa, maksimal 2 ta xato imkoni.
+          </p>
+          <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-blue-600/40 group-hover:bg-blue-500 transition">
+              Simulyatsiyani Boshlash <span class="ic text-[10px]">›</span>
+            </span>
+            <span class="text-[11px] text-slate-300 font-mono">Imtihon</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modullar Grid -->
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+        <span>Bo'limlar</span>
+        <span class="text-blue-400 cursor-pointer font-medium hover:underline text-[11px]">8 ta bo'lim</span>
+      </h3>
+
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <!-- 1 -->
+        <div onclick="setScreen('exam')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mb-3">
+            <span class="ic text-base">◉</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">Yo'l Belgilari</h4>
+          <p class="text-[11px] text-slate-400">180 ta standart belgi</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Progress</span>
+            <span class="text-sky-400">92%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-blue-500 h-full rounded-full w-[92%]"></div>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div onclick="setScreen('academy')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
+            <span class="ic text-base">➤</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">Chorrahada Ustunlik</h4>
+          <p class="text-[11px] text-slate-400">Teng huquqli va aylanma</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Progress</span>
+            <span class="text-emerald-400">76%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-emerald-500 h-full rounded-full w-[76%]"></div>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div onclick="setScreen('video')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3">
+            <span class="ic text-base">▰</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">Avtodrom Mashqlari</h4>
+          <p class="text-[11px] text-slate-400">Estakada, burchakka kirish</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Video darslar</span>
+            <span class="text-amber-400">12 ta</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-amber-500 h-full rounded-full w-[50%]"></div>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div onclick="setScreen('ai')" class="glass-card-interactive p-4 rounded-xl cursor-pointer">
+          <div class="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-3">
+            <span class="ic text-base">✺</span>
+          </div>
+          <h4 class="text-xs font-bold text-white mb-0.5">AI Yo'l Eksperti</h4>
+          <p class="text-[11px] text-slate-400">Noaniq savollar sharhi</p>
+          <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>Holat</span>
+            <span class="text-emerald-400">Online 24/7</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+            <div class="bg-purple-500 h-full rounded-full w-[100%]"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. EXAM SIMULATOR (TEST) ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-exam">
+      <!-- Test Header with Countdown Timer -->
+      <div class="flex items-center justify-between mb-4">
+        <button onclick="setScreen('home')" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white">
+          <span class="ic text-xs">←</span>
+        </button>
+        <div class="text-center">
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400"><span id="eh">Test</span></span>
+          <p class="text-xs font-bold text-white">Savol <span id="qn">1</span> / <span id="qt">1</span></p>
+        </div>
+        <!-- Authentic Exam Countdown Timer -->
+        <div class="px-2.5 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-1.5 text-red-400 hud-font text-xs font-bold">
+          <span class="ic text-[10px]">◷</span> <span id="tmr">0:00</span>
+        </div>
+      </div>
+
+      <!-- Question Tracker Dots -->
+      <div class="flex items-center justify-between gap-1 mb-4">
+        <span class="w-full h-1.5 rounded-full bg-emerald-500"></span>
+        <span class="w-full h-1.5 rounded-full bg-emerald-500"></span>
+        <span class="w-full h-1.5 rounded-full bg-red-500"></span>
+        <span class="w-full h-1.5 rounded-full bg-blue-500 ring-2 ring-blue-400/40"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+        <span class="w-full h-1.5 rounded-full bg-slate-800"></span>
+      </div>
+
+      <!-- Question Real Realistic Graphic / Scenario View -->
+      <div class="glass-card rounded-2xl overflow-hidden mb-4 border border-slate-700/60">
+        <!-- Realistic Intersection Situation -->
+        <div class="relative h-44 bg-[#141A28] flex items-center justify-center overflow-hidden">
+          <!-- Realistic asphalt and intersection markings -->
+          <svg class="w-full h-full" viewBox="0 0 360 200" preserveAspectRatio="none">
+            <!-- Road surface -->
+            <rect width="360" height="200" fill="#1E2330"/>
+            <!-- Road borders -->
+            <line x1="0" y1="20" x2="360" y2="20" stroke="#334155" stroke-width="4"/>
+            <line x1="0" y1="180" x2="360" y2="180" stroke="#334155" stroke-width="4"/>
+            <!-- Lane divider markings -->
+            <line x1="0" y1="100" x2="360" y2="100" stroke="#F8FAFC" stroke-width="2" stroke-dasharray="14 10" opacity="0.6"/>
+            <!-- Pedestrian crossing / zebra -->
+            <rect x="230" y="24" width="10" height="152" fill="#F1F5F9" opacity="0.4"/>
+            <rect x="250" y="24" width="10" height="152" fill="#F1F5F9" opacity="0.4"/>
+            <rect x="270" y="24" width="10" height="152" fill="#F1F5F9" opacity="0.4"/>
+          </svg>
+
+          <!-- Authentic Road Sign 2.4 "Yo'l bering" (Give way / Triangle inverted) -->
+          <div class="absolute left-6 top-5 flex flex-col items-center sign-shadow">
+            <svg width="44" height="40" viewBox="0 0 100 90">
+              <polygon points="50,85 5,10 95,10" fill="#FFFFFF" stroke="#DC2626" stroke-width="12" stroke-linejoin="round"/>
+            </svg>
+            <span class="text-[9px] font-mono text-slate-400 mt-1">2.4-belgi</span>
+          </div>
+
+          <!-- Realistic Car A (Ko'k Sedan - asosiy yo'lda) -->
+          <div class="absolute left-24 bottom-14 flex items-center gap-1.5">
+            <div class="px-1.5 py-0.5 rounded bg-blue-600 text-white font-mono text-[9px] font-bold">A</div>
+            <div class="w-20 h-9 rounded-lg bg-gradient-to-r from-blue-700 to-blue-500 border border-blue-400/40 shadow-lg relative flex items-center justify-between px-2">
+              <span class="w-1 h-3 rounded-sm bg-amber-400"></span>
+              <span class="text-[10px] text-white/90 font-mono font-bold tracking-tight">SEDAN</span>
+              <span class="w-1.5 h-3.5 rounded-sm bg-red-500"></span>
+            </div>
+          </div>
+
+          <!-- Realistic Car B (Qora Crossover - aylanmadan chiqmoqda) -->
+          <div class="absolute right-14 top-8 flex items-center gap-1.5">
+            <div class="w-20 h-9 rounded-lg bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-600 shadow-xl relative flex items-center justify-between px-2">
+              <span class="w-1.5 h-3.5 rounded-sm bg-red-500"></span>
+              <span class="text-[10px] text-slate-300 font-mono font-bold tracking-tight">SUV</span>
+              <span class="w-1 h-3 rounded-sm bg-amber-400"></span>
+            </div>
+            <div class="px-1.5 py-0.5 rounded bg-amber-600 text-white font-mono text-[9px] font-bold">B</div>
+          </div>
+
+          <!-- Direction Arrows Indicator -->
+          <div class="absolute right-6 bottom-4 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono text-slate-300 border border-slate-700">
+            Kamera burchagi: Yuqoridan (Top-View)
+          </div>
+        </div>
+
+        <!-- Question text -->
+        <div class="p-4 border-t border-slate-800">
+          <p class="text-xs text-blue-400 font-semibold mb-1 uppercase tracking-wide">3.5-band — Harakatlanish ustunligi</p>
+          <p class="text-sm font-semibold text-white leading-snug">
+            Ushbu chorrahada ko'k rangli «A» avtomobil haydovchisi qanday harakatlanishi shart?
+          </p>
+        </div>
+      </div>
+
+      <!-- Multiple Choice Options -->
+      <div class="space-y-2.5 mb-4" id="options-container">
+        <!-- Option 1 -->
+        <div class="quiz-option" onclick="handleSelectOption(this, false)">
+          <div class="badge-letter">A</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            Chorrahaga birinchi bo'lib to'xtamasdan o'tadi («O'ng qo'l» qoidasi bo'yicha).
+          </span>
+        </div>
+
+        <!-- Option 2 (Correct) -->
+        <div class="quiz-option" onclick="handleSelectOption(this, true)">
+          <div class="badge-letter">B</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            «Yo'l bering» (2.4) belgisi talabi bo'yicha «B» avtomobiliga yo'l beradi.
+          </span>
+        </div>
+
+        <!-- Option 3 -->
+        <div class="quiz-option" onclick="handleSelectOption(this, false)">
+          <div class="badge-letter">C</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            Tovush signali berib, tezlikni oshirib o'tib ketadi.
+          </span>
+        </div>
+
+        <!-- Option 4 -->
+        <div class="quiz-option" onclick="handleSelectOption(this, false)">
+          <div class="badge-letter">D</div>
+          <span class="text-xs text-slate-200 leading-normal">
+            Faqat «B» avtomobil haydovchisi ruxsat bergandagina harakatlanadi.
+          </span>
+        </div>
+      </div>
+
+      <!-- Sharh & AI Real-Time Explanation (Tushuntirish) -->
+      <div id="exam-explanation" class="hidden glass-card rounded-xl p-4 border border-emerald-500/30 bg-emerald-950/20 mb-4 animate-fadeIn">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs">
+              <span class="ic ">⚖</span>
+            </span>
+            <span class="text-xs font-bold text-emerald-400">Izoh:</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">Modda 2.4</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          2.4 «Yo'l bering» belgisi talabiga binoan haydovchi kesib o'tilayotgan qatnov qismida harakatlanayotgan transport vositasiga yo'l berishi shart. Demak, «A» transport vositasi «B» avtomobiliga to'liq yo'l berishi lozim.
+        </p>
+        <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
+          <button onclick="setScreen('ai')" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5">
+            <span class="ic ">☎</span> AI Ekspertdan qo'shimcha so'rash
+          </button>
+          <button class="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-500">
+            Keyingi Savol <span class="ic text-[10px] ml-1">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. ACADEMY / YHQ TA'LIM ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-academy">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Rasmiy Ta'lim Dasturi</span>
+          <h2 class="text-lg font-bold text-white">YHQ Nazariy Kursi</h2>
+        </div>
+        <div class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-blue-400">
+          <span class="ic text-sm">✦</span>
+        </div>
+      </div>
+
+      <!-- Search bar -->
+      <div class="glass-card rounded-xl px-3.5 py-2.5 flex items-center gap-2.5 mb-4 border border-slate-800">
+        <span class="ic text-slate-500 text-xs">⌕</span>
+        <input 
+          type="text" 
+          placeholder="YHQ moddasi, yo'l belgisi yoki qoida qidirish..." 
+          class="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none w-full"
+        />
+      </div>
+
+      <!-- Syllabus Modules List -->
+      <div class="space-y-3">
+        <!-- 1 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                01
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Umumiy Qoidalar va Atamalar</h4>
+                <p class="text-[11px] text-slate-400">Haydovchi, piyoda, t/v va yo'l tushunchalari</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 14 dars</span>
+                  <span><span class="ic text-emerald-400 mr-1">✓</span> Bajarildi</span>
+                </div>
+              </div>
+            </div>
+            <span class="ic text-emerald-400 text-base">✓</span>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                02
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Yo'l Belgilari & Chiziqlari</h4>
+                <p class="text-[11px] text-slate-400">Ogohlantiruvchi, imtiyoz, taqiqlovchi, buyuruvchi</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 28 dars</span>
+                  <span class="text-amber-400 font-semibold">O'rganilmoqda (72%)</span>
+                </div>
+              </div>
+            </div>
+            <span class="text-xs font-mono font-bold text-amber-400">72%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1 mt-3 overflow-hidden">
+            <div class="bg-amber-400 h-full rounded-full w-[72%]"></div>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                03
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Svetofor va Tartibga Soluvchi</h4>
+                <p class="text-[11px] text-slate-400">Tartibga soluvchining qo'l ishoralari va signallari</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 10 dars</span>
+                  <span class="text-slate-500">Boshlanmagan</span>
+                </div>
+              </div>
+            </div>
+            <span class="ic text-slate-600 text-sm">⚿</span>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-blue-500/30 transition">
+          <div class="flex items-start justify-between">
+            <div class="flex gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold font-mono text-sm">
+                04
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-white mb-0.5">Tezlik va Xavfsiz Masofa</h4>
+                <p class="text-[11px] text-slate-400">Aholi punktlarida va magistral yo'llarda harakat</p>
+                <div class="flex items-center gap-3 mt-2 text-[10px] font-mono text-slate-400">
+                  <span><span class="ic text-blue-400 mr-1">≡</span> 16 dars</span>
+                  <span class="text-slate-500">Boshlanmagan</span>
+                </div>
+              </div>
+            </div>
+            <span class="ic text-slate-600 text-sm">⚿</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. 4K VIDEO MASTERCLASSES ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-video">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">AvtoO’quvchi</span>
+          <h2 class="text-lg font-bold text-white">Professional Video Darslar</h2>
+        </div>
+        <span class="px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-400 text-[10px] font-mono font-bold">4K HDR</span>
+      </div>
+
+      <!-- Main Featured Video Player Box -->
+      <div class="rounded-2xl overflow-hidden glass-card border border-slate-800 mb-5 relative group">
+        <div class="relative h-48 w-full bg-slate-900">
+          <div class="w-full h-full  opacity-80 group-hover:scale-102 transition duration-500" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0B0F19] via-transparent to-black/40"></div>
+          
+          <!-- Central Play Button -->
+          <button class="absolute inset-0 m-auto w-14 h-14 rounded-full bg-blue-600/90 text-white flex items-center justify-center shadow-2xl shadow-blue-600/50 hover:bg-blue-500 hover:scale-110 transition border border-white/20">
+            <span class="ic text-lg ml-1">▶</span>
+          </button>
+
+          <!-- Video Badges -->
+          <div class="absolute top-3 left-3 flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-white text-[10px] font-mono border border-white/10">
+              Mavzu 08
+            </span>
+            <span class="px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold">
+              AMALIYOT
+            </span>
+          </div>
+
+          <div class="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/80 font-mono text-[10px] text-white">
+            18:45
+          </div>
+        </div>
+
+        <div class="p-4">
+          <h3 class="text-sm font-bold text-white mb-1">
+            Murakkab Aylanma Harakatda (Krug) To'g'ri Qator Tanlash
+          </h3>
+          <p class="text-xs text-slate-400 leading-relaxed mb-3">
+            Haqiqiy shahar sharoitida instruktor sharhi bilan: aylanmaga kirish, burilish chiroqlarini yoqish va chiqish qoidalari.
+          </p>
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
+            <span class="flex items-center gap-1.5 text-slate-300">
+              <span class="ic text-blue-400">☺</span> Inst. R. Samadov
+            </span>
+            <span class="font-mono text-[11px]">14.2k ko'rishlar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Playlist items -->
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Tavsiya Etilgan Videolar</h3>
+      
+      <div class="space-y-2.5">
+        <!-- Item 1 -->
+        <div class="glass-card-interactive p-2.5 rounded-xl flex items-center gap-3 cursor-pointer">
+          <div class="relative w-24 h-16 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0">
+            <div class="w-full h-full " style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+            <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <span class="ic text-xs text-white">▶</span>
+            </div>
+            <span class="absolute bottom-1 right-1 px-1 rounded bg-black/80 text-[9px] font-mono text-white">12:10</span>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white line-clamp-1">Paralel Parkovka Qilish Algoritmi</h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">Avtodrom imtihonini 1-urinishda topshirish</p>
+            <span class="text-[10px] text-blue-400 font-mono mt-1 inline-block">Avtodrom #03</span>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="glass-card-interactive p-2.5 rounded-xl flex items-center gap-3 cursor-pointer">
+          <div class="relative w-24 h-16 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0">
+            <div class="w-full h-full " style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+            <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <span class="ic text-xs text-white">▶</span>
+            </div>
+            <span class="absolute bottom-1 right-1 px-1 rounded bg-black/80 text-[9px] font-mono text-white">15:20</span>
+          </div>
+          <div>
+            <h4 class="text-xs font-bold text-white line-clamp-1">Teng Huquqli Chorrahada O'tish</h4>
+            <p class="text-[11px] text-slate-400 mt-0.5">3D grafik simulyatsiya va tahlil</p>
+            <span class="text-[10px] text-emerald-400 font-mono mt-1 inline-block">Nazariya #09</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. AI INSTRUCTOR (GEMINI 24/7) ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-ai">
+      <!-- AI Header -->
+      <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+              <span class="ic text-lg">⬢</span>
+            </div>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#0B0F19]"></span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+              AI Yo'l Instruktori
+              <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono">24/7</span>
+            </h3>
+            <p class="text-[11px] text-slate-400">Yo’l harakati qoidalari bo’yicha murabbiy</p>
+          </div>
+        </div>
+        <button class="text-xs text-slate-400 hover:text-white">
+          <span class="ic ">↻</span>
+        </button>
+      </div>
+
+      <!-- Dialogue Stream -->
+      <div class="space-y-3.5 mb-24">
+        <!-- AI welcome message -->
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xs flex-shrink-0 mt-0.5">
+            <span class="ic ">⛨</span>
+          </div>
+          <div class="glass-card p-3.5 rounded-2xl rounded-tl-sm text-xs leading-relaxed text-slate-200 border border-slate-800 max-w-[85%]">
+            Assalomu alaykum, <span class="uFirst"></span>! Men sizning 24/7 shaxsiy YHQ instruktoringizman. Test savollari, noaniq chorrahalar yoki jarimalar to'g'risida istalgan savolingizni bering.
+          </div>
+        </div>
+
+        <!-- User question -->
+        <div class="flex justify-end">
+          <div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-sm text-xs max-w-[85%] leading-relaxed shadow-lg shadow-blue-600/20">
+            Aylanma harakat (krug)ga kirayotganda chap burilish chirog'ini yoqish shartmi?
+          </div>
+        </div>
+
+        <!-- AI structured answer -->
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xs flex-shrink-0 mt-0.5">
+            <span class="ic ">⛨</span>
+          </div>
+          <div class="glass-card p-3.5 rounded-2xl rounded-tl-sm text-xs leading-relaxed text-slate-200 border border-slate-800 max-w-[90%]">
+            <p class="font-bold text-blue-400 mb-1 flex items-center gap-1.5">
+              <span class="ic ">⚖</span> YHQ 9.1 & 9.2-bandlariga ko'ra:
+            </p>
+            <p class="mb-2">
+              <strong class="text-white">Yo'q, shart emas!</strong> Aylanmaga kirish odatda o'ng tomonga burilish bilan amalga oshiriladi. Shu sababli:
+            </p>
+            <ul class="space-y-1 text-slate-300 pl-2 border-l border-blue-500/30 mb-2">
+              <li>• Aylanmaga kirishda: <span class="text-emerald-400 font-semibold">O'ng chiroq</span> yoqiladi.</li>
+              <li>• Aylanma bo'ylab harakatda qator almashtirmasangiz: <span class="text-slate-400">Hech qanday chiroq yoqilmaydi.</span></li>
+              <li>• Chiqishda: Yana <span class="text-emerald-400 font-semibold">O'ng chiroq</span> yoqiladi.</li>
+            </ul>
+            <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+              <span>Ishonchlilik: 99.8%</span>
+              <span class="text-blue-400 cursor-pointer">Batafsil sharh →</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt suggestions -->
+        <div class="flex gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-300">
+          <span class="px-3 py-1.5 rounded-xl glass-card whitespace-nowrap cursor-pointer hover:border-blue-400/40">
+            «O'ng qo'l» qoidasi nima?
+          </span>
+          <span class="px-3 py-1.5 rounded-xl glass-card whitespace-nowrap cursor-pointer hover:border-blue-400/40">
+            Svetofor va belgi ziddiyati?
+          </span>
+        </div>
+      </div>
+
+      <!-- AI Fixed Input Bar inside Mockup -->
+      <div class="absolute bottom-20 left-4 right-4 z-30">
+        <div class="glass-card rounded-2xl p-2 flex items-center gap-2 border border-blue-500/30 bg-[#0B0F19]/90 shadow-2xl">
+          <input 
+            type="text" 
+            placeholder="YHQ bo'yicha savolingizni yozing..." 
+            class="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none flex-1 px-3"
+          />
+          <button class="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition shadow-lg shadow-blue-600/40">
+            <span class="ic text-xs">↑</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 6. DRIVER ID & PROFILE ==================== -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-license">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Elektron Talaba ID</span>
+          <h2 class="text-lg font-bold text-white">Haydovchilik Profili</h2>
+        </div>
+        <button onclick="logout()" title="Chiqish" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-slate-300">
+          <span class="ic text-sm">⏻</span>
+        </button>
+      </div>
+
+      <!-- Realistic Digital Driver's License Card -->
+      <div class="relative rounded-2xl p-5 mb-5 overflow-hidden border border-blue-400/30 shadow-2xl bg-gradient-to-br from-[#0F1E3A] via-[#0E1726] to-[#0A0D14]">
+        <div class="absolute top-0 right-0 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-5 rounded bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">UZB</span>
+            <span class="text-xs font-bold text-slate-200 tracking-wider">HAYDOVCHILIK GUVOHNOMASI</span>
+          </div>
+          <span class="ic text-blue-400 text-sm">▰</span>
+        </div>
+
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-16 h-20 rounded-xl  border border-slate-600 shadow-md" style="background:linear-gradient(135deg,#0f2a5c,#0b3b5e 55%,#064e3b)"></div>
+          <div class="space-y-1">
+            <p class="text-[10px] text-slate-400 uppercase font-mono">Familiyasi / Ismi</p>
+            <h3 class="text-sm font-bold text-white tracking-tight"><span class="uFull"></span></h3>
+            <p class="text-[10px] text-slate-400 uppercase font-mono pt-1">Toifasi</p>
+            <div class="inline-flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-blue-500/30 text-blue-300 font-mono font-bold text-xs border border-blue-400/40">B</span>
+              <span class="text-[10px] text-slate-400 font-mono">Yengil avtomobil</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-slate-800 text-[10px] font-mono text-slate-400">
+          <span>KOD: <span id="uCode"></span></span>
+          <span class="text-emerald-400 font-bold">HOLATI: <span id="uState"></span></span>
+        </div>
+      </div>
+
+      <!-- Statistics Telemetry -->
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">O'zlashtirish Telemetriyasi</h3>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="glass-card p-3.5 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-mono">Biletlar Muvaffaqiyati</span>
+          <p class="text-xl font-bold text-emerald-400 hud-font mt-1"><span id="lAcc"></span></p>
+          <span class="text-[10px] text-slate-500"><span id="lN"></span> ta savol yechildi</span>
+        </div>
+        <div class="glass-card p-3.5 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-mono">Qayd etilgan Xatolar</span>
+          <p class="text-xl font-bold text-amber-400 hud-font mt-1"><span id="lW"></span> ta</p>
+          <span class="text-[10px] text-slate-500">Xatolar ustida ishlash →</span>
+        </div>
+      </div>
+
+      <!-- Settings & Action List -->
+      <div class="glass-card rounded-2xl overflow-hidden border border-slate-800 divide-y divide-slate-800/80">
+        <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-3">
+            <span class="ic text-amber-400 text-sm">⚠</span>
+            <span class="text-xs font-semibold text-white">Mening Xatolarim Banki (<span id="lW2"></span>)</span>
+          </div>
+          <span class="ic text-slate-600 text-[10px]">›</span>
+        </div>
+        <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-3">
+            <span class="ic text-blue-400 text-sm">↺</span>
+            <span class="text-xs font-semibold text-white">Sinov Imtihonlari Tarixi</span>
+          </div>
+          <span class="ic text-slate-600 text-[10px]">›</span>
+        </div>
+        <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-3">
+            <span class="ic text-purple-400 text-sm">文</span>
+            <span class="text-xs font-semibold text-white">Til: O'zbekcha (Lotin)</span>
+          </div>
+          <span class="text-[10px] text-slate-400 font-mono">O'zgartirish</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone Bottom Navigation Bar -->
+    <div class="screen relative z-10 px-5 pt-6" id="screen-misc"><div id="misc"></div></div>
+<div class="screen relative z-10 px-5 pt-6" id="screen-auto"></div>
+<div class="nav-bar" id="anav" style="display:none"><button onclick="admin('apps')" class="nav-btn" data-t="apps"><svg viewBox="0 0 24 24"><path d="M19 3H4.99c-1.11 0-1.98.89-1.98 2L3 19c0 1.1.88 2 1.99 2H19c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm0 12h-4c0 1.66-1.35 3-3 3s-3-1.34-3-3H4.99V5H19v10z"/></svg><span>Arizalar</span></button><button onclick="admin('all')" class="nav-btn" data-t="all"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>A'zolar</span></button><button onclick="admin('add')" class="nav-btn" data-t="add"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span>Qo'shish</span></button><button onclick="admin('set')" class="nav-btn" data-t="set"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 5v-2l-2.1-.7a7 7 0 00-.6-1.5l1-2-1.4-1.4-2 1a7 7 0 00-1.5-.6L14 3h-2l-.7 2.1a7 7 0 00-1.5.6l-2-1L6.4 6.1l1 2a7 7 0 00-.6 1.5L5 11v2l2.1.7c.1.5.3 1 .6 1.5l-1 2 1.4 1.4 2-1c.5.3 1 .5 1.5.6L12 21h2l.7-2.1c.5-.1 1-.3 1.5-.6l2 1 1.4-1.4-1-2c.3-.5.5-1 .6-1.5L21 13z"/></svg><span>Sozlamalar</span></button></div>
+<div class="nav-bar" id="stnav">
+      <button onclick="setScreen('home')" class="nav-btn active" id="btn-home">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Asosiy</span>
+      </button>
+      <button onclick="setScreen('exam')" class="nav-btn" id="btn-exam">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>
+        <span>Imtihon</span>
+      </button>
+      <button onclick="setScreen('academy')" class="nav-btn" id="btn-academy">
+        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.2v6L12 21l7-3.8v-6l2-1.1V17h2V9L12 3z"/></svg>
+        <span>YHQ</span>
+      </button>
+      <button onclick="setScreen('video')" class="nav-btn" id="btn-video">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>Video</span>
+      </button>
+      <button onclick="setScreen('ai')" class="nav-btn" id="btn-ai">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <span>AI Yordam</span>
+      </button>
+      <button onclick="setScreen('license')" class="nav-btn" id="btn-license">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM9 7.5a2 2 0 110 4 2 2 0 010-4zM14 16.5H4v-1c0-1.7 3.3-2.5 5-2.5s5 .8 5 2.5v1zm6-2h-4V13h4v1.5zm0-3h-4V10h4v1.5z"/></svg>
+        <span>ID Karta</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ds=t=>{const d=new Date(t),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())},day=()=>ds(Date.now()),dstr=n=>ds(Date.now()+n*864e5),S0=()=>({n:0,ok:0,days:{},wrong:[],streak:0,last:"",sv:[],vd:{},vdone:[],exam:""}),shuf=a=>[...a].sort(()=>Math.random()-.5);
+let U=null,S=S0(),T=null,tm=null,chat=[],vi=0,bank={questions:[],videos:[],auto:[]};
+let sy=null;const push=()=>{sy=null;if(!U||!TOK)return;fetch("/api/me/state",{method:"PUT",keepalive:true,headers:{"Content-Type":"application/json",Authorization:"Bearer "+TOK},body:JSON.stringify({state:S})}).catch(()=>{})},save=now=>{clearTimeout(sy);if(now)push();else sy=setTimeout(push,1500)},NAV=["home","exam","academy","video","auto","ai","license"];
+const IN="w-full bg-slate-900/70 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 mb-3",BT="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/30 transition",B2="w-full py-3 rounded-xl glass-card text-slate-200 font-semibold text-sm hover:border-blue-400/40 transition",LB="block text-[10px] uppercase font-mono tracking-wider text-slate-400 mb-1";
+function toast(m){const d=document.createElement("div");d.className="glass-card text-xs text-white rounded-xl p-3 border border-emerald-500/40";d.style.cssText="position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(420px,92vw);z-index:9999;background:#0f172a";d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),12000)}
+function setScreen(id){if(!U&&id!=="misc")return;if(id==="exam"&&!T)id="academy";
+$$(".screen").forEach(s=>s.classList.remove("active"));$("#screen-"+id).classList.add("active");$$(".nav-btn").forEach(b=>b.classList.remove("active"));const b=$("#btn-"+(id==="exam"?"academy":id));if(b)b.classList.add("active");
+$("#stnav").style.display=NAV.includes(id)?"flex":"none";$("#anav").style.display="none";({home:fillHome,academy:()=>testsV("hub"),video:()=>vidV("topics"),auto:()=>autoV(),ai:renderChat,license:fillId})[id]?.();$("#screen-"+id).scrollTop=0}
+const misc=h=>{$("#misc").innerHTML=h;setScreen("misc")};
+const nm=()=>(U&&U.first)||"Talaba";
+function fillNames(){$$(".uName").forEach(e=>e.textContent=U.first?U.first+" "+U.last:U.id);$$(".uFirst").forEach(e=>e.textContent=nm());$$(".uFull").forEach(e=>e.textContent=U.first?(U.last+" "+U.first).toUpperCase():U.id.toUpperCase());
+const ini=((U.first||U.id)[0]+(U.last||"")[0]).toUpperCase();["#screen-home .w-12.h-12","#screen-license .w-16.h-20"].forEach(s=>{const e=$(s);e.classList.add("flex","items-center","justify-center","text-white","font-bold","text-lg");e.textContent=ini})}
+function fillId(){$("#uCode").textContent="UZ-"+U.id.toUpperCase();$("#uState").textContent=S.n>=20&&S.ok/S.n>=.9?"IMTIHONGA TAYYOR":"TAYYORGARLIKDA";$("#lAcc").textContent=(S.n?(S.ok/S.n*100).toFixed(1):"0.0")+"%";$("#lN").textContent=S.n;$("#lW").textContent=S.wrong.length;$("#lW2").textContent=S.wrong.length}
+/* ===== TEST ===== */
+const EX={n:20,min:20,w:2},MN={p:"Mashq",e:"Imtihon",w:"Xatolar"};let AG=()=>{},TOP=[],TPL=[],VG=[];
+const qs=()=>bank.questions,grp=(a,k)=>{const m={};a.forEach(q=>{if(q[k]!==undefined&&q[k]!=="")(m[q[k]]=m[q[k]]||[]).push(q)});return m};
+function begin(l,m,lb){if(!l.length){toast("Bu bo’limda hozircha savol yo’q");return}clearInterval(tm);T={l,i:0,m,lb:lb||MN[m],ok:0,r:[],left:EX.min*60};if(m==="e")tm=setInterval(()=>{if(!T)return;T.left--;tmr();if(T.left<=0)fin()},1000);setScreen("exam");qv()}
+const tmr=()=>{$("#tmr").textContent=Math.floor(T.left/60)+":"+String(T.left%60).padStart(2,"0")};
+function bmU(){const b=$("#bm"),on=S.sv.includes(qs().indexOf(T.l[T.i]));b.textContent=on?"★ Saqlandi":"☆ Tushunmadim";b.classList.toggle("text-amber-400",on)}
+function toggleBm(){const id=qs().indexOf(T.l[T.i]);S.sv=S.sv.includes(id)?S.sv.filter(x=>x!==id):[...S.sv,id];save();bmU();toast(S.sv.includes(id)?"Savol saqlandi: “Saqlangan savollar” bo’limida topasiz":"Saqlanganlardan olib tashlandi")}
+function qv(){const x=T.l[T.i];T.done=0;$("#qn").textContent=T.i+1;$("#qt").textContent=T.l.length;$("#eh").textContent=T.lb;$("#tmr").parentElement.style.visibility=T.m==="e"?"visible":"hidden";tmr();
+$("#screen-exam .gap-1").innerHTML=T.l.map((_,k)=>`<span class="w-full h-1.5 rounded-full ${k<T.i?(T.r[k]?"bg-emerald-500":"bg-red-500"):k===T.i?"bg-blue-500 ring-2 ring-blue-400/40":"bg-slate-800"}"></span>`).join("");
+$("#screen-exam .h-44").style.display=x.s?"":"none";const p=$$("#screen-exam .p-4.border-t p");p[0].textContent=x.t||"";p[1].textContent=x.q;bmU();
+$("#options-container").innerHTML=x.o.map((o,i)=>`<div class="quiz-option" onclick="pick(${i},this)"><div class="badge-letter">${"ABCD"[i]}</div><span class="text-xs text-slate-200 leading-normal">${esc(o)}</span></div>`).join("");$("#exam-explanation").classList.add("hidden");$("#screen-exam").scrollTop=0}
+function pick(i,el){if(T.done)return;T.done=1;const x=T.l[T.i],r=i===x.a,id=qs().indexOf(x);S.n++;S.days[day()]=(S.days[day()]||0)+1;
+if(S.last!==day()){S.streak=S.last===ds(Date.now()-864e5)?S.streak+1:1;S.last=day()}
+if(r){S.ok++;T.ok++;S.wrong=S.wrong.filter(w=>w!==id)}else if(!S.wrong.includes(id))S.wrong.push(id);T.r[T.i]=r;save();
+if(T.m==="e"){el.classList.add("ring-2","ring-blue-500");return void setTimeout(nxq,350)}
+$$(".quiz-option")[x.a].classList.add("correct");if(!r)el.classList.add("wrong");
+$("#exam-explanation p.text-xs.text-slate-300").textContent=(r?"✓ To’g’ri. ":"✗ Noto’g’ri. Savol “Xatolar ustida ishlash” bo’limiga qo’shildi. ")+(x.e||"");$("#exam-explanation .font-mono").textContent=x.t||"Izoh";$$("#exam-explanation button")[1].firstChild.textContent=T.i+1>=T.l.length?"Natijani ko’rish ":"Keyingi Savol ";$("#exam-explanation").classList.remove("hidden");$("#exam-explanation").scrollIntoView({block:"nearest",behavior:"smooth"})}
+function nxq(){T.i++;T.i>=T.l.length?fin():qv()}
+function askQ(){const x=T.l[T.i];chat=[];setScreen("ai");send(`Test savoli: "${x.q}" Variantlar: ${x.o.join(" | ")}. To’g’ri javob: ${x.o[x.a]}. Nima uchun aynan shu javob to’g’ri, boshqalari nega noto’g’ri? Sodda tushuntir.`)}
+function leave(){if(T&&T.m==="e"&&!confirm("Imtihon to’xtatilsinmi?"))return;clearInterval(tm);T=null;setScreen("academy")}
+function fin(){clearInterval(tm);const t=T,p=Math.round(t.ok/t.l.length*100),w=t.l.length-t.ok,pass=t.m==="e"?w<=EX.w:p>=70;T=null;
+misc(`<div class="text-center pt-8"><div class="text-5xl mb-3">${pass?"🎉":"💪"}</div><h2 class="text-xl font-bold text-white">${pass?"Tabriklaymiz!":"Yana urinib ko’ring"}</h2><p class="text-xs text-slate-400 mb-5">${esc(t.lb)} yakunlandi</p><div class="glass-card rounded-2xl p-6 mb-5"><div class="hud-font text-5xl font-extrabold ${pass?"text-emerald-400":"text-amber-400"}">${p}<span class="text-xl text-slate-400">%</span></div><p class="text-xs text-slate-400 mt-2">${t.ok} / ${t.l.length} to’g’ri · ${w} ta xato</p></div><button class="${BT}" onclick="AG()">Yana urinish</button><button class="${B2} mt-3" onclick="setScreen('academy')">Testlar bo’limiga</button><button class="${B2} mt-3" onclick="setScreen('home')">Bosh sahifa</button></div>`)}
+/* ===== BO'LIMLAR ===== */
+const empty=t=>`<div class="glass-card rounded-2xl p-8 text-center border border-dashed border-slate-700"><div class="text-3xl mb-3 text-slate-500">◌</div><p class="text-sm font-semibold text-white mb-1">${t||"Hozircha bo’sh"}</p><p class="text-[11px] text-slate-400">Materiallar tez orada yuklanadi.</p></div>`;
+const hdr=(t,s,bk)=>`<div class="flex items-center gap-3 mb-5">${bk?`<button onclick="${bk}" class="w-9 h-9 rounded-xl glass-card text-slate-300 flex-shrink-0">←</button>`:""}<div><h2 class="text-lg font-bold text-white leading-tight">${t}</h2><p class="text-[11px] text-slate-400">${s||""}</p></div></div>`;
+const row=(ic,c,t,s,oc)=>`<div onclick="${oc}" class="glass-card-interactive p-3.5 rounded-xl flex items-center gap-3 cursor-pointer mb-2.5"><div class="w-10 h-10 rounded-lg bg-${c}-500/10 border border-${c}-500/20 flex items-center justify-center text-${c}-400 flex-shrink-0">${ic}</div><div class="min-w-0 flex-1"><h4 class="text-xs font-bold text-white">${t}</h4><p class="text-[11px] text-slate-400">${s}</p></div><span class="text-slate-500">›</span></div>`;
+const put=(id,h)=>{$(id).innerHTML=`<div class="scr">${h}</div>`;$(id).scrollTop=0};
+function testsV(v){let h;const Q=qs(),R="testsV('hub')";
+if(v==="hub")h=hdr("Testlar","Bo’limni tanlang")+row("▣","blue","Imtihon Test",`${EX.n} ta savol · ${EX.min} daqiqa · ${EX.w} ta xato mumkin`,"startExam()")+row("◉","sky","Mavzulashtirilgan Testlar",Object.keys(grp(Q,"t")).length+" ta mavzu","testsV('topics')")+row("↻","violet","Aralash Testlar","Barcha mavzulardan tasodifiy","testsV('mixed')")+row("≡","emerald","Shablon Testlar",Object.keys(grp(Q,"tpl")).length+" ta shablon","testsV('tpls')")+row("⚠","red","Xatolar ustida ishlash",S.wrong.length+" ta savol","testsV('wrong')")+row("★","amber","Saqlangan savollar",S.sv.length+" ta savol","testsV('saved')");
+if(v==="topics"){TOP=Object.keys(grp(Q,"t"));h=hdr("Mavzulashtirilgan Testlar","",R)+(TOP.length?TOP.map((k,i)=>row("◉","sky",esc(k),grp(Q,"t")[k].length+" ta savol",`startTopic(${i})`)).join(""):empty("Mavzulashtirilgan testlar yo’q"))}
+if(v==="mixed")h=hdr("Aralash Testlar","Barcha mavzulardan tasodifiy savollar",R)+(Q.length?[20,50,100].map(n=>row("↻","violet",Math.min(n,Q.length)+" ta savol","Tasodifiy tanlanadi",`startMixed(${n})`)).join(""):empty("Aralash testlar yo’q"));
+if(v==="tpls"){TPL=Object.keys(grp(Q,"tpl")).sort((a,b)=>a-b||a.localeCompare(b));h=hdr("Shablon Testlar","",R)+(TPL.length?TPL.map((k,i)=>row("≡","emerald","Shablon "+esc(k),grp(Q,"tpl")[k].length+" ta savol",`startTpl(${i})`)).join(""):empty("Shablon testlar yo’q"))}
+if(v==="wrong")h=hdr("Xatolar ustida ishlash","Noto’g’ri javob bergan savollaringiz",R)+(S.wrong.length?row("⚠","red","Xatolarni takrorlash",S.wrong.length+" ta savol · to’g’ri javob bersangiz ro’yxatdan chiqadi","startWrong()"):empty("Xatolar yo’q"));
+if(v==="saved")h=hdr("Saqlangan savollar","Tushunmagan savollaringiz",R)+(S.sv.length?row("★","amber","Saqlanganlarni takrorlash",S.sv.length+" ta savol","startSaved()")+`<button class="${B2} mt-2" onclick="S.sv=[];save();testsV('saved')">Ro’yxatni tozalash</button>`:empty("Saqlangan savol yo’q")+`<p class="text-[11px] text-slate-500 mt-3 text-center">Test paytida “☆ Tushunmadim” tugmasini bosing.</p>`);
+put("#screen-academy",h)}
+const stt=(f,l,lb)=>{AG=f;begin(l,"p",lb)};
+function startExam(){AG=startExam;begin(shuf(qs()).slice(0,EX.n),"e","Imtihon")}
+function startTopic(i){const k=TOP[i];stt(()=>startTopic(i),shuf(grp(qs(),"t")[k]),k)}
+function startMixed(n){stt(()=>startMixed(n),shuf(qs()).slice(0,n),"Aralash test")}
+function startTpl(i){const k=TPL[i];stt(()=>startTpl(i),grp(qs(),"tpl")[k],"Shablon "+k)}
+function startWrong(){AG=startWrong;begin(S.wrong.map(i=>qs()[i]).filter(Boolean),"w","Xatolar")}
+function startSaved(){stt(startSaved,S.sv.map(i=>qs()[i]).filter(Boolean),"Saqlangan")}
+const media=u=>/\.(mp4|webm)(\?|$)|^\/_blob\//.test(u)?`<video controls playsinline class="w-full rounded-xl bg-black mb-3" src="${esc(u)}"></video>`:/^https?:\/\//.test(u)?`<a href="${esc(u)}" target="_blank" rel="noopener" class="${BT} block text-center mb-3">▶ Videoni ochish</a>`:"";
+function vidV(v="topics",a){const V=bank.videos,dn=S.vdone,m=grp(V,"t");let h;
+if(v==="topics"){VG=Object.keys(m);h=hdr("Mavzulashtirilgan Videolar",V.length+" ta video")+(VG.length?VG.map((k,i)=>row("▶","blue",esc(k),m[k].length+" ta video",`vidV('list',${i})`)).join(""):empty("Videolar hali yuklanmagan"))}
+if(v==="list"){const k=VG[a];h=hdr(esc(k),"","vidV('topics')")+m[k].map(x=>{const i=V.indexOf(x);return row(dn.includes(i)?"✓":"▶",dn.includes(i)?"emerald":"blue",esc(x.title),esc(x.d||""),`vidV('play',${i})`)}).join("")}
+if(v==="play"){const x=V[a];h=hdr(esc(x.title),esc(x.t||""),`vidV('list',${VG.indexOf(x.t)})`)+media(x.u||"")+(x.x?`<div class="glass-card rounded-xl p-4 text-xs text-slate-300 leading-relaxed mb-3">${esc(x.x)}</div>`:"")+`<button class="${dn.includes(a)?B2:BT}" onclick="doneV(${a})">${dn.includes(a)?"✓ O’zlashtirilgan":"O’zlashtirdim"}</button>`}
+put("#screen-video",h)}
+function doneV(i){if(!S.vdone.includes(i)){S.vdone.push(i);S.vd[day()]=(S.vd[day()]||0)+1;save()}vidV("play",i)}
+function autoV(v,a){const A=bank.auto;let h;if(v==="d"){const x=A[a];h=hdr(esc(x.title),esc(x.d||""),"autoV()")+media(x.u||"")+(x.x?`<div class="glass-card rounded-xl p-4 text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">${esc(x.x)}</div>`:"")}
+else h=hdr("Avtodrom Qo’llanmasi","Amaliy imtihon uchun mashqlar")+(A.length?A.map((x,i)=>row("▰","amber",esc(x.title),esc(x.d||""),`autoV('d',${i})`)).join(""):empty("Qo’llanma hali yuklanmagan"));put("#screen-auto",h)}
+/* ===== REJA ===== */
+const planFor=d=>{const dl=Math.ceil((new Date(d+"T00:00:00")-new Date(day()+"T00:00:00"))/864e5),days=Math.max(1,dl),Q=qs().length,V=bank.videos.length;return{dl,tests:Math.max(20,Math.ceil((Q||1000)*2/days)),vids:Math.max(1,Math.ceil((V||100)/days)),est:!Q}};
+const planCalc=()=>S.exam?planFor(S.exam):null;
+function planV(){misc(`<div class="pt-6"><span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Shaxsiy reja</span><h2 class="text-lg font-bold text-white mb-1">Imtihonga qachon borasiz?</h2><p class="text-xs text-slate-400 mb-4">Sanani tanlang. Unga mos kunlik test va video rejasini tuzamiz.</p>
+<input type="date" id="pd" class="${IN}" min="${dstr(1)}" max="${dstr(365)}" value="${S.exam&&S.exam>day()?S.exam:dstr(30)}" oninput="planPrev()"><div class="flex gap-2 flex-wrap mb-4 text-[11px]">${[[14,"2 hafta"],[30,"1 oy"],[60,"2 oy"],[90,"3 oy"]].map(([n,l])=>`<span onclick="$('#pd').value=dstr(${n});planPrev()" class="px-3 py-1.5 rounded-xl glass-card text-slate-300 cursor-pointer">${l}</span>`).join("")}</div>
+<div id="pp" class="glass-card rounded-2xl p-4 mb-4 border border-blue-500/20"></div><button class="${BT}" onclick="planSave()">Rejani tuzish</button>${S.exam?`<button class="${B2} mt-3" onclick="setScreen('home')">Bekor qilish</button>`:""}</div>`);planPrev()}
+function planPrev(){const d=$("#pd").value,pp=$("#pp");if(!d||d<=day())return pp.innerHTML='<p class="text-xs text-amber-400">Kelajakdagi sanani tanlang</p>';const p=planFor(d);
+pp.innerHTML=`<p class="text-[11px] text-slate-400 mb-2">Imtihongacha <b class="text-white">${p.dl} kun</b></p><div class="grid grid-cols-2 gap-3"><div><p class="text-[10px] text-slate-400 uppercase">Kuniga test</p><p class="text-2xl font-bold text-blue-400 hud-font">${p.tests}</p></div><div><p class="text-[10px] text-slate-400 uppercase">Kuniga video</p><p class="text-2xl font-bold text-emerald-400 hud-font">${p.vids}</p></div></div>${p.est?'<p class="text-[10px] text-slate-500 mt-3">Taxminiy hisob. Test va videolar yuklangach aniqlashadi.</p>':""}`}
+function planSave(){const d=$("#pd").value;if(!d||d<=day())return toast("Kelajakdagi sanani tanlang");S.exam=d;save(1);toast("✓ Reja tuzildi");S.tour?setScreen("home"):tourV()}
+const pbar=(l,v,t,c)=>`<div class="mb-2.5"><div class="flex justify-between text-[11px] mb-1"><span class="text-slate-300">${l}</span><span class="hud-font text-${c}-400">${v} / ${t}</span></div><div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden"><div class="bg-${c}-500 h-full rounded-full" style="width:${Math.min(100,v/t*100)}%"></div></div></div>`;
+function fillHome(){const a=S.n?S.ok/S.n*100:0,pl=planCalc();$("#rdv").textContent=a.toFixed(1);$("#rdBar").style.width=a+"%";$("#solved").textContent=S.n;$("#today").textContent=S.days[day()]||0;$("#wrongN").textContent=S.wrong.length;$("#acc").textContent=Math.round(a)+"%";
+$("#planCard").innerHTML=pl?`<div class="flex justify-between items-start mb-3"><div><span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">Kunlik reja</span><p class="text-sm font-bold text-white">${pl.dl>0?"Imtihongacha "+pl.dl+" kun":"Imtihon kuni!"}</p><p class="text-[10px] text-slate-500 hud-font">${S.exam}</p></div><button onclick="planV()" class="text-[11px] text-blue-400">O’zgartirish</button></div>${pbar("Bugungi testlar",S.days[day()]||0,pl.tests,"blue")}${pbar("Bugungi videolar",S.vd[day()]||0,pl.vids,"emerald")}${pl.est?'<p class="text-[10px] text-slate-500 mt-1">Reja taxminiy. Materiallar yuklangach aniqlashadi.</p>':""}`:"";
+const c=(ic,col,t,s,oc)=>`<div onclick="${oc}" class="glass-card-interactive p-4 rounded-xl cursor-pointer"><div class="w-9 h-9 rounded-lg bg-${col}-500/10 border border-${col}-500/20 flex items-center justify-center text-${col}-400 mb-3"><span class="ic text-base">${ic}</span></div><h4 class="text-xs font-bold text-white mb-0.5">${t}</h4><p class="text-[11px] text-slate-400">${s}</p></div>`,Q=qs();
+$("#secGrid").innerHTML=c("▣","blue","Imtihon Test",EX.n+" savol · "+EX.min+" daq","startExam()")+c("◉","sky","Mavzulashtirilgan Testlar",Object.keys(grp(Q,"t")).length+" ta mavzu","gt('topics')")+c("↻","violet","Aralash Testlar",Q.length+" ta savol","gt('mixed')")+c("≡","emerald","Shablon Testlar",Object.keys(grp(Q,"tpl")).length+" ta shablon","gt('tpls')")+c("▶","blue","Mavzulashtirilgan Videolar",bank.videos.length+" ta video","setScreen('video')")+c("▰","amber","Avtodrom Qo’llanmasi",bank.auto.length+" ta material","setScreen('auto')")+c("⚠","red","Xatolar ustida ishlash",S.wrong.length+" ta savol","gt('wrong')")+c("★","amber","Saqlangan savollar",S.sv.length+" ta savol","gt('saved')")}
+const gt=v=>{setScreen("academy");testsV(v)};
+/* ===== AI ===== */
+const AIB=h=>`<div class="flex items-start gap-2.5"><div class="w-7 h-7 rounded-lg bg-blue-600/30 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xs flex-shrink-0 mt-0.5">⛨</div><div class="glass-card p-3.5 rounded-2xl rounded-tl-sm text-xs leading-relaxed text-slate-200 border border-slate-800 max-w-[88%] whitespace-pre-wrap">${h}</div></div>`;
+function renderChat(){$('#screen-ai [class~="space-y-3.5"]').innerHTML=AIB(`Assalomu alaykum, ${esc(nm())}! 👋 Men sizning shaxsiy YHQ murabbiyingizman va 24/7 yoningizdaman. Qoidalar, test savollari yoki avtodrom haqida bemalol so’rang. Qaysi mavzudan boshlaymiz?`)+chat.map(c=>c.role==="user"?`<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-2xl rounded-tr-sm text-xs max-w-[85%] leading-relaxed shadow-lg shadow-blue-600/20 whitespace-pre-wrap">${esc(c.content)}</div></div>`:AIB(esc(c.content))).join("")+`<div class="flex gap-1.5 overflow-x-auto pb-1 text-[11px] text-slate-300">${["Chorrahada kim birinchi o’tadi?","Yo’l belgilari guruhlari","Avtodromda nimalarga e’tibor beray?","Bugungi rejam qanday?"].map(s=>`<span onclick="send(this.textContent)" class="px-3 py-1.5 rounded-xl glass-card whitespace-nowrap cursor-pointer hover:border-blue-400/40">${s}</span>`).join("")}</div>`;$("#screen-ai").scrollTop=1e5}
+async function send(t){const inp=$("#screen-ai input");t=(typeof t==="string"?t:inp.value).trim();if(!t)return;inp.value="";if(!$("#screen-ai").classList.contains("active"))setScreen("ai");
+const hist=chat.filter(c=>c.content!=="…").slice(-8);chat.push({role:"user",content:t});chat.push({role:"assistant",content:"…"});renderChat();const k=chat.length-1;
+try{const r=await api("/api/ai",{method:"POST",body:{messages:[...hist,{role:"user",content:t}]}});chat[k].content=r.text}catch(e){chat[k].content=e.status===429?"Hozir so’rovlar ko’p. Birozdan keyin urinib ko’ring.":e.status===503?"AI yordamchi hali sozlanmagan. Administratorga xabar bering.":"AI yordamchi hozir javob bera olmadi. Qayta urinib ko’ring."}renderChat()}
+/* ===== KIRISH (server bilan) ===== */
+let TOK=ld("av_tok",null),C=null,rv=null;
+async function api(p,o={}){const h={"Content-Type":"application/json"};if(TOK)h.Authorization="Bearer "+TOK;const r=await fetch(p,{method:o.method||"GET",headers:h,body:o.body?JSON.stringify(o.body):undefined});let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Object.assign(new Error(j.error||"Xatolik yuz berdi"),{status:r.status});return j}
+const setTok=t=>{TOK=t;sv("av_tok",t)};
+const fmt=v=>{const d=v.replace(/\D/g,"").slice(0,9);return[d.slice(0,2),d.slice(2,5),d.slice(5,7),d.slice(7,9)].filter(Boolean).join(" ")};
+function loginV(){misc(`<div class="pt-4"><div class="glass-card rounded-2xl p-5 mb-5 border border-blue-500/20"><div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-xl mb-3 shadow-lg shadow-blue-500/30">▰</div><h2 class="text-xl font-extrabold text-white">AvtoO’quvchi</h2><p class="text-xs text-slate-400 mt-1">Login yoki telefon raqam bilan kirish</p></div>
+<label class="${LB}">Login yoki telefon raqam</label><input id="lg" class="${IN}" autocapitalize="none" autocomplete="username"><label class="${LB}">Parol</label><input id="pw" type="password" class="${IN}" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"><p id="er" class="text-xs text-red-400 min-h-[18px] mb-2"></p>
+<button class="${BT}" onclick="doLogin()">Kirish</button><button class="${B2} mt-3" onclick="onb()">← Ro’yxatdan o’tish</button><p class="text-[11px] text-slate-500 mt-4">Parolni avtomaktab administratoridan olasiz. Parolsiz kirish uchun telefon raqam bilan ro’yxatdan o’ting.</p></div>`)}
+async function doLogin(){const id=$("#lg").value.trim(),p=$("#pw").value;if(!id||!p)return $("#er").textContent="Login va parolni kiriting";
+try{const r=await api("/api/login",{method:"POST",body:{login:id,password:p}});setTok(r.token);U=r.user;enter(r.state)}catch(e){$("#er").textContent=e.message}}
+function enter(st){S={...S0(),...(st||{})};if(U.v){fillNames();S.exam?(S.tour?setScreen("home"):tourV()):planV()}else onb()}
+async function logout(){try{await api("/api/logout",{method:"POST"})}catch(e){}setTok(null);clearInterval(tm);T=null;chat=[];U=null;onb()}
+function onb(){rv=null;misc(`<div class="pt-4"><div class="glass-card rounded-2xl p-4 mb-5 border border-blue-500/20 flex items-center gap-3"><div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-lg shadow-lg shadow-blue-500/30">▰</div><div><h2 class="text-base font-extrabold text-white leading-tight">AvtoO’quvchi</h2><p class="text-[11px] text-slate-400">Ilovaga kirishdan oldin ro’yxatdan o’ting</p></div></div><span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">1-qadam</span><h2 class="text-lg font-bold text-white mb-1">Ma’lumotlaringiz</h2><p class="text-[11px] text-slate-400 mb-4">Ism, familiya va telefon raqamingizni kiriting. Raqam sizniki ekanini SMS kod bilan tasdiqlaymiz.</p>
+<label class="${LB}">Ism</label><input id="fn" class="${IN}" autocomplete="given-name"><label class="${LB}">Familiya</label><input id="ln" class="${IN}" autocomplete="family-name">
+<label class="${LB}">Avtomaktabda o’qiganmisiz?</label><div class="space-y-2 mb-3"><div class="quiz-option sch" onclick="rad(this,1)"><div class="badge-letter">✓</div><span class="text-xs text-slate-200">Ha, o’qiganman</span></div><div class="quiz-option sch" onclick="rad(this,0)"><div class="badge-letter">✗</div><span class="text-xs text-slate-200">Yo’q, o’qimaganman</span></div></div>
+<label class="${LB}">Telefon raqamingiz</label><div class="flex gap-2"><span class="px-3 py-3 rounded-xl bg-slate-800 text-white hud-font text-sm mb-3">+998</span><input id="ph" class="${IN} hud-font" inputmode="numeric" maxlength="12" placeholder="90 123 45 67" oninput="this.value=fmt(this.value)"></div>
+<p id="er" class="text-xs text-red-400 min-h-[18px] mb-2"></p><button id="sb" class="${BT}" onclick="sendC()">SMS kod yuborish</button>${U?"":`<button class="${B2} mt-3" onclick="loginV()">Menda login va parol bor</button>`}</div>`)}
+function rad(e,v){rv=v;$$(".sch").forEach(c=>c.classList.toggle("correct",c===e))}
+function sendC(){const fn=$("#fn").value.trim(),ln=$("#ln").value.trim(),ph=$("#ph").value.replace(/\D/g,""),er=$("#er");
+if(fn.length<2||ln.length<2)return er.textContent="Ism va familiyani kiriting";if(rv===null)return er.textContent="Avtomaktabda o’qiganligingizni tanlang";if(ph.length!==9)return er.textContent="Raqamni to’liq kiriting (9 ta raqam)";C={fn,ln,ph,school:rv};sendCode(true)}
+async function sendCode(first){const b=$("#sb")||$("#rs");if(b){b.disabled=true;b.textContent="Yuborilmoqda…"}
+try{const r=await api("/api/sms/send",{method:"POST",body:{phone:C.ph,first:C.fn,last:C.ln,school:C.school}});C.sent=Date.now();codeV();if(r.demoCode)toast("DEMO rejim: SMS yuborilmadi. Kod: "+r.demoCode)}
+catch(e){if(first){onb();setTimeout(()=>{$("#fn").value=C.fn;$("#ln").value=C.ln;$("#ph").value=fmt(C.ph);$("#er").textContent=e.message},0)}else{const er=$("#er");if(er)er.textContent=e.message;if(b){b.disabled=false;b.textContent="Qayta yuborish"}}}}
+function codeV(){misc(`<div class="pt-8"><h2 class="text-lg font-bold text-white">Raqamni tasdiqlang</h2><p class="text-xs text-slate-400 mt-1 mb-5">+998 ${esc(fmt(C.ph))} raqamiga 5 xonali kod yuborildi</p><input id="cd" class="${IN} hud-font text-center text-2xl tracking-[.5em]" inputmode="numeric" maxlength="5" placeholder="•••••" oninput="this.value=this.value.replace(/\\D/g,'')" onkeydown="if(event.key==='Enter')chk()"><p id="er" class="text-xs text-red-400 min-h-[18px] mb-2"></p>
+<button class="${BT}" onclick="chk()">Tasdiqlash</button><div class="grid grid-cols-2 gap-2 mt-3"><button class="${B2}" onclick="onb()">← Raqamni o’zgartirish</button><button id="rs" class="${B2}" onclick="resend()">Qayta yuborish</button></div></div>`)}
+function resend(){const w=60-Math.floor((Date.now()-C.sent)/1e3);if(w>0)return $("#er").textContent=w+" soniyadan keyin qayta yuborishingiz mumkin";sendCode(false)}
+async function chk(){const v=$("#cd").value,er=$("#er");if(v.length!==5)return er.textContent="5 xonali kodni kiriting";
+try{const r=await api("/api/sms/verify",{method:"POST",body:{phone:C.ph,code:v,first:C.fn,last:C.ln,school:C.school}});setTok(r.token);U=r.user;toast("✓ Raqam tasdiqlandi");enter(r.state)}catch(e){er.textContent=e.message}}
+async function boot(){misc('<p class="text-xs text-slate-400 pt-16 text-center">Yuklanmoqda…</p>');try{const b=await(await fetch("/bank.json",{cache:"no-store"})).json();bank={questions:[],videos:[],auto:[],...b}}catch(e){}
+if(TOK){try{const r=await api("/api/me");U=r.user;return enter(r.state)}catch(e){if(e.status===401||e.status===403)setTok(null)}}onb()}
+
+addEventListener("pagehide",()=>{if(sy)push()});document.addEventListener("visibilitychange",()=>{if(document.hidden&&sy)push()});
+/* ===== TANISHUV (TUR) ===== */
+const TOUR=[["◎","","Bu ilova sizni imtihonga bosqichma-bosqich tayyorlaydi. 1 daqiqada asosiy imkoniyatlar bilan tanishib chiqamiz."],
+["◔","Kunlik reja","Imtihon sanangizga qarab, har kuni nechta test yechish va nechta video ko’rish kerakligi <b>bosh sahifada</b> ko’rinib turadi. Sanani istalgan vaqt “O’zgartirish” tugmasi bilan almashtirasiz."],
+["▣","Testlar","<b>Imtihon Test</b> (taymer bilan), <b>Mavzulashtirilgan</b>, <b>Aralash</b> va <b>Shablon</b> testlar. Mashq paytida javob bergach, darhol izoh chiqadi."],
+["⚠","Xatolar va saqlangan savollar","Noto’g’ri javob bergan savollaringiz <b>“Xatolar ustida ishlash”</b> bo’limiga o’zi tushadi. Tushunmagan savolni <b>“☆ Tushunmadim”</b> tugmasi bilan saqlab qo’ying, keyin takrorlaysiz."],
+["▶","Video va Avtodrom","Mavzulashtirilgan video darslar va avtodrom qo’llanmasi. Videoni ko’rib bo’lgach <b>“O’zlashtirdim”</b> tugmasini bosing, u kunlik rejangizga qo’shiladi."],
+["⛨","AI yordamchi","Tushunmagan qoidani istalgan vaqt so’rang. Test paytida AI tugmasi bosilsa, savolni o’zi tushuntirib beradi."],
+["✓","Tayyormisiz?","Bu tanishuvni bosh sahifaning yuqori o’ng burchagidagi <b>“?”</b> tugmasi bilan istalgan vaqt qayta ko’rishingiz mumkin."]];
+function tourV(i=0){const t=TOUR[i],n=TOUR.length,last=i===n-1;misc(`<div class="pt-10 text-center"><div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-3xl shadow-lg shadow-blue-500/30 mb-6">${t[0]}</div><h2 class="text-xl font-bold text-white mb-2">${i===0?"Xush kelibsiz, "+esc(nm())+"!":t[1]}</h2><p class="text-sm text-slate-300 leading-relaxed mb-6 px-2">${t[2]}</p>
+<div class="flex justify-center gap-1.5 mb-6">${TOUR.map((_,k)=>`<span class="h-1.5 rounded-full ${k===i?"w-6 bg-blue-500":"w-1.5 bg-slate-700"}"></span>`).join("")}</div>
+<button class="${BT}" onclick="${last?"tourEnd()":`tourV(${i+1})`}">${last?"Boshlash":"Keyingi"}</button>${last?"":`<button class="${B2} mt-3" onclick="tourEnd()">O’tkazib yuborish</button>`}${i>0?`<button class="w-full mt-3 text-xs text-slate-400" onclick="tourV(${i-1})">← Orqaga</button>`:""}</div>`)}
+function tourEnd(){S.tour=1;save(1);setScreen("home")}
+
+/* ===== INIT ===== */
+(function(){const hb=$("#screen-home button");hb.innerHTML='<span class="ic text-sm font-bold">?</span>';hb.title="Ilova bilan tanishish";hb.onclick=()=>tourV();const eb=$$("#exam-explanation button");eb[0].onclick=askQ;eb[1].onclick=nxq;$("#screen-exam button").onclick=leave;
+const qb=$("#screen-exam .p-4.border-t.border-slate-800");qb.classList.add("relative");qb.insertAdjacentHTML("beforeend",'<button id="bm" onclick="toggleBm()" class="absolute top-3 right-3 px-2.5 py-1 rounded-lg glass-card text-[10px] font-semibold text-slate-300">☆ Tushunmadim</button>');
+const ai=$("#screen-ai input");ai.onkeydown=e=>{if(e.key==="Enter")send()};$("#screen-ai .absolute button").onclick=()=>send();$("#screen-ai .border-b button").onclick=()=>{chat=[];renderChat()};
+const g=$("#rdv").closest(".glass-card"),pc=document.createElement("div");pc.id="planCard";pc.className="glass-card rounded-2xl p-4 mb-5 border border-slate-800";g.after(pc);$("#screen-home .grid.grid-cols-2.gap-3").id="secGrid";
+const nv=$("#stnav"),be=$("#btn-exam"),L=(e,t)=>e.lastElementChild.textContent=t;be.id="btn-auto";be.setAttribute("onclick","setScreen('auto')");be.querySelector("path").setAttribute("d","M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z");
+nv.insertBefore($("#btn-academy"),be);nv.insertBefore($("#btn-video"),be);L($("#btn-academy"),"Testlar");L($("#btn-video"),"Video");L(be,"Avtodrom");L($("#btn-license"),"Profil");
+$$("#screen-license .divide-y > div")[0].onclick=startWrong;
+const clk=()=>{const d=new Date();$("#clk").textContent=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};clk();setInterval(clk,3e4);boot()})();
+
+</script>
+</body>
+</html>
