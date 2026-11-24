@@ -215,6 +215,9 @@
 .nav-btn svg{width:22px;height:22px;fill:currentColor}.nav-btn.active svg{filter:drop-shadow(0 0 8px rgba(56,189,248,.5))}
 body>.mb-6{display:none!important}@media(max-width:767px){body{padding:0!important;display:block!important;min-height:100dvh}.sbar,.dynamic-island{display:none!important}
 .phone-mockup{width:100%;height:100dvh;border:0;border-radius:0;box-shadow:none}.screen{padding-top:calc(env(safe-area-inset-top,0px) + 20px)}.nav-bar{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));height:calc(80px + env(safe-area-inset-bottom,0px))}}
+#tbar{display:none;position:absolute;left:50%;top:46px;transform:translateX(-50%);z-index:45;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(15,23,42,.92);border:1px solid rgba(16,185,129,.45);color:#6ee7b7;font:700 11px "JetBrains Mono",monospace;pointer-events:none;white-space:nowrap}
+#tbar.warn{border-color:rgba(245,158,11,.55);color:#fbbf24}#tbar.crit{border-color:rgba(239,68,68,.65);color:#f87171;animation:tbp 1s infinite}@keyframes tbp{50%{opacity:.55}}
+@media(max-width:767px){#tbar{top:calc(env(safe-area-inset-top,0px) + 6px)}.hastb .screen{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}}
 </style>
 </head>
 <body class="p-4 md:p-8 flex flex-col items-center min-h-screen justify-center bg-[#05070E]">
@@ -963,7 +966,7 @@ body>.mb-6{display:none!important}@media(max-width:767px){body{padding:0!importa
     </div>
 
     <!-- Phone Bottom Navigation Bar -->
-    <div class="screen relative z-10 px-5 pt-6" id="screen-misc"><div id="misc"></div></div>
+    <div id="tbar"></div><div class="screen relative z-10 px-5 pt-6" id="screen-misc"><div id="misc"></div></div>
 <div class="screen relative z-10 px-5 pt-6" id="screen-auto"></div>
 <div class="nav-bar" id="anav" style="display:none"><button onclick="admin('apps')" class="nav-btn" data-t="apps"><svg viewBox="0 0 24 24"><path d="M19 3H4.99c-1.11 0-1.98.89-1.98 2L3 19c0 1.1.88 2 1.99 2H19c1.1 0 2-.9 2-2V5c0-1.11-.9-2-2-2zm0 12h-4c0 1.66-1.35 3-3 3s-3-1.34-3-3H4.99V5H19v10z"/></svg><span>Arizalar</span></button><button onclick="admin('all')" class="nav-btn" data-t="all"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>A'zolar</span></button><button onclick="admin('add')" class="nav-btn" data-t="add"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span>Qo'shish</span></button><button onclick="admin('set')" class="nav-btn" data-t="set"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 5v-2l-2.1-.7a7 7 0 00-.6-1.5l1-2-1.4-1.4-2 1a7 7 0 00-1.5-.6L14 3h-2l-.7 2.1a7 7 0 00-1.5.6l-2-1L6.4 6.1l1 2a7 7 0 00-.6 1.5L5 11v2l2.1.7c.1.5.3 1 .6 1.5l-1 2 1.4 1.4 2-1c.5.3 1 .5 1.5.6L12 21h2l.7-2.1c.5-.1 1-.3 1.5-.6l2 1 1.4-1.4-1-2c.3-.5.5-1 .6-1.5L21 13z"/></svg><span>Sozlamalar</span></button></div>
 <div class="nav-bar" id="stnav">
@@ -1005,7 +1008,7 @@ const IN="w-full bg-slate-900/70 border border-slate-700 rounded-xl px-4 py-3 te
 function toast(m){const d=document.createElement("div");d.className="glass-card text-xs text-white rounded-xl p-3 border border-emerald-500/40";d.style.cssText="position:fixed;top:14px;left:50%;transform:translateX(-50%);width:min(420px,92vw);z-index:9999;background:#0f172a";d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),12000)}
 function setScreen(id){if(!U&&id!=="misc")return;if(id==="exam"&&!T)id="academy";
 $$(".screen").forEach(s=>s.classList.remove("active"));$("#screen-"+id).classList.add("active");$$(".nav-btn").forEach(b=>b.classList.remove("active"));const b=$("#btn-"+(id==="exam"?"academy":id));if(b)b.classList.add("active");
-$("#stnav").style.display=NAV.includes(id)?"flex":"none";$("#anav").style.display="none";({home:fillHome,academy:()=>testsV("hub"),video:()=>vidV("topics"),auto:()=>autoV(),ai:renderChat,license:fillId})[id]?.();$("#screen-"+id).scrollTop=0}
+$("#stnav").style.display=NAV.includes(id)?"flex":"none";if(typeof tick==="function"&&ACC)tick();$("#anav").style.display="none";({home:fillHome,academy:()=>testsV("hub"),video:()=>vidV("topics"),auto:()=>autoV(),ai:renderChat,license:fillId})[id]?.();$("#screen-"+id).scrollTop=0}
 const misc=h=>{$("#misc").innerHTML=h;setScreen("misc")};
 const nm=()=>(U&&U.first)||"Talaba";
 function fillNames(){$$(".uName").forEach(e=>e.textContent=U.first?U.first+" "+U.last:U.id);$$(".uFirst").forEach(e=>e.textContent=nm());$$(".uFull").forEach(e=>e.textContent=U.first?(U.last+" "+U.first).toUpperCase():U.id.toUpperCase());
@@ -1092,9 +1095,26 @@ function loginV(){misc(`<div class="pt-4"><div class="glass-card rounded-2xl p-5
 <label class="${LB}">Login yoki telefon raqam</label><input id="lg" class="${IN}" autocapitalize="none" autocomplete="username"><label class="${LB}">Parol</label><input id="pw" type="password" class="${IN}" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"><p id="er" class="text-xs text-red-400 min-h-[18px] mb-2"></p>
 <button class="${BT}" onclick="doLogin()">Kirish</button><button class="${B2} mt-3" onclick="onb()">← Ro’yxatdan o’tish</button><p class="text-[11px] text-slate-500 mt-4">Parolni avtomaktab administratoridan olasiz. Parolsiz kirish uchun telefon raqam bilan ro’yxatdan o’ting.</p></div>`)}
 async function doLogin(){const id=$("#lg").value.trim(),p=$("#pw").value;if(!id||!p)return $("#er").textContent="Login va parolni kiriting";
-try{const r=await api("/api/login",{method:"POST",body:{login:id,password:p}});setTok(r.token);U=r.user;enter(r.state)}catch(e){$("#er").textContent=e.message}}
-function enter(st){S={...S0(),...(st||{})};if(U.v){fillNames();S.exam?(S.tour?setScreen("home"):tourV()):planV()}else onb()}
-async function logout(){try{await api("/api/logout",{method:"POST"})}catch(e){}setTok(null);clearInterval(tm);T=null;chat=[];U=null;onb()}
+try{const r=await api("/api/login",{method:"POST",body:{login:id,password:p}});setTok(r.token);enter(r)}catch(e){$("#er").textContent=e.message}}
+let ACC=null,tickT=null,pollT=null;
+const hms=t=>{t=Math.max(0,Math.floor(t/1e3));const p=n=>String(n).padStart(2,"0");return p(Math.floor(t/3600))+":"+p(Math.floor(t%3600/60))+":"+p(t%60)};
+function stopTimers(){clearInterval(tickT);clearInterval(pollT);tickT=pollT=null;ACC=null;const b=$("#tbar");if(b)b.style.display="none";document.body.classList.remove("hastb")}
+function setAcc(a){ACC={until:a.until,skew:a.now-Date.now()};clearInterval(tickT);tick();tickT=setInterval(tick,1000)}
+function tick(){if(!ACC)return;const rem=ACC.until-(Date.now()+ACC.skew),b=$("#tbar"),on=NAV.some(id=>$("#screen-"+id).classList.contains("active"));
+b.textContent="⏱ "+hms(rem);b.className=rem<3e5?"crit":rem<36e5?"warn":"";b.style.display=on?"flex":"none";document.body.classList.toggle("hastb",on);
+if(rem<=0){stopTimers();T=null;clearInterval(tm);expiredV()}}
+function enter(r){U=r.user;const a=r.access||{};if(!U.v)return onb();
+if(a.status==="active"){S={...S0(),...(r.state||{})};fillNames();setAcc(a);S.exam?(S.tour?setScreen("home"):tourV()):planV()}
+else if(a.status==="expired")expiredV();else if(a.status==="rejected")rejectedV();else waitV(a)}
+function waitV(a){stopTimers();const t0=(a&&a.since)?a.since-(a.now-Date.now()):Date.now();
+misc(`<div class="pt-16 text-center"><div class="w-16 h-16 mx-auto rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin mb-6"></div><h2 class="text-lg font-bold text-white mb-2">Arizangiz adminga yuborildi</h2><p class="text-sm text-slate-300 leading-relaxed px-3 mb-2">Admin ruxsat bergach ilova o’zi ochiladi. Odatda <b class="text-white">1–5 daqiqa</b> kutish kerak.</p><p class="text-xs text-slate-500 mb-5">Sahifani yopmang</p>
+<div class="glass-card rounded-2xl p-4 mb-5 inline-block min-w-[160px]"><p class="text-[10px] uppercase font-mono text-slate-400">Kutilmoqda</p><p id="wt" class="text-2xl font-bold text-blue-400 hud-font">00:00</p></div><p id="wn" class="text-[11px] text-slate-500 min-h-[16px] mb-4"></p><button class="${B2}" onclick="logout()">Chiqish</button></div>`);
+const upd=()=>{const e=$("#wt");if(!e)return;const s=Math.max(0,Math.floor((Date.now()-t0)/1e3));e.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");$("#wn").textContent=s>300?"Biroz ko’proq vaqt ketmoqda. Kutishda davom eting, admin band bo’lishi mumkin.":""};
+upd();tickT=setInterval(upd,1000);pollT=setInterval(async()=>{try{const r=await api("/api/me");if(r.access&&r.access.status!=="pending"){stopTimers();enter(r)}}catch(e){if(e.status===401){stopTimers();logout()}}},6000)}
+function expiredV(){stopTimers();misc(`<div class="pt-16 text-center"><div class="w-16 h-16 mx-auto rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-2xl text-amber-400 mb-6">⏱</div><h2 class="text-lg font-bold text-white mb-2">Bepul vaqt tugadi</h2><p class="text-sm text-slate-300 leading-relaxed px-3 mb-6">Davom etish uchun adminadan qayta ruxsat so’rang. Natijalaringiz saqlanib turadi.</p><button class="${BT}" onclick="reqAccess()">Ruxsat so’rash</button><button class="${B2} mt-3" onclick="logout()">Chiqish</button></div>`)}
+async function reqAccess(){try{const r=await api("/api/me/request",{method:"POST"});waitV(r.access)}catch(e){toast("Yuborib bo’lmadi: "+e.message)}}
+function rejectedV(){stopTimers();misc(`<div class="pt-16 text-center"><div class="w-16 h-16 mx-auto rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-2xl text-red-400 mb-6">✗</div><h2 class="text-lg font-bold text-white mb-2">Ruxsat berilmadi</h2><p class="text-sm text-slate-300 leading-relaxed px-3 mb-6">Arizangiz rad etilgan. Savollar bo’lsa, avtomaktab administratori bilan bog’laning.</p><button class="${B2}" onclick="logout()">Chiqish</button></div>`)}
+async function logout(){try{await api("/api/logout",{method:"POST"})}catch(e){}setTok(null);stopTimers();clearInterval(tm);T=null;chat=[];U=null;onb()}
 function onb(){rv=null;misc(`<div class="pt-4"><div class="glass-card rounded-2xl p-4 mb-5 border border-blue-500/20 flex items-center gap-3"><div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 flex items-center justify-center text-white text-lg shadow-lg shadow-blue-500/30">▰</div><div><h2 class="text-base font-extrabold text-white leading-tight">AvtoO’quvchi</h2><p class="text-[11px] text-slate-400">Ilovaga kirishdan oldin ro’yxatdan o’ting</p></div></div><span class="text-[10px] uppercase font-mono tracking-wider text-slate-400">1-qadam</span><h2 class="text-lg font-bold text-white mb-1">Ma’lumotlaringiz</h2><p class="text-[11px] text-slate-400 mb-4">Ism, familiya va telefon raqamingizni kiriting. Raqam sizniki ekanini SMS kod bilan tasdiqlaymiz.</p>
 <label class="${LB}">Ism</label><input id="fn" class="${IN}" autocomplete="given-name"><label class="${LB}">Familiya</label><input id="ln" class="${IN}" autocomplete="family-name">
 <label class="${LB}">Avtomaktabda o’qiganmisiz?</label><div class="space-y-2 mb-3"><div class="quiz-option sch" onclick="rad(this,1)"><div class="badge-letter">✓</div><span class="text-xs text-slate-200">Ha, o’qiganman</span></div><div class="quiz-option sch" onclick="rad(this,0)"><div class="badge-letter">✗</div><span class="text-xs text-slate-200">Yo’q, o’qimaganman</span></div></div>
@@ -1110,9 +1130,9 @@ function codeV(){misc(`<div class="pt-8"><h2 class="text-lg font-bold text-white
 <button class="${BT}" onclick="chk()">Tasdiqlash</button><div class="grid grid-cols-2 gap-2 mt-3"><button class="${B2}" onclick="onb()">← Raqamni o’zgartirish</button><button id="rs" class="${B2}" onclick="resend()">Qayta yuborish</button></div></div>`)}
 function resend(){const w=60-Math.floor((Date.now()-C.sent)/1e3);if(w>0)return $("#er").textContent=w+" soniyadan keyin qayta yuborishingiz mumkin";sendCode(false)}
 async function chk(){const v=$("#cd").value,er=$("#er");if(v.length!==5)return er.textContent="5 xonali kodni kiriting";
-try{const r=await api("/api/sms/verify",{method:"POST",body:{phone:C.ph,code:v,first:C.fn,last:C.ln,school:C.school}});setTok(r.token);U=r.user;toast("✓ Raqam tasdiqlandi");enter(r.state)}catch(e){er.textContent=e.message}}
+try{const r=await api("/api/sms/verify",{method:"POST",body:{phone:C.ph,code:v,first:C.fn,last:C.ln,school:C.school}});setTok(r.token);toast("✓ Raqam tasdiqlandi");enter(r)}catch(e){er.textContent=e.message}}
 async function boot(){misc('<p class="text-xs text-slate-400 pt-16 text-center">Yuklanmoqda…</p>');try{const b=await(await fetch("/bank.json",{cache:"no-store"})).json();bank={questions:[],videos:[],auto:[],...b}}catch(e){}
-if(TOK){try{const r=await api("/api/me");U=r.user;return enter(r.state)}catch(e){if(e.status===401||e.status===403)setTok(null)}}onb()}
+if(TOK){try{const r=await api("/api/me");return enter(r)}catch(e){if(e.status===401||e.status===403)setTok(null)}}onb()}
 
 addEventListener("pagehide",()=>{if(sy)push()});document.addEventListener("visibilitychange",()=>{if(document.hidden&&sy)push()});
 /* ===== TANISHUV (TUR) ===== */

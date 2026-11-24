@@ -38,6 +38,27 @@ Server HTTPS orqasida turishi kerak (Render, Railway, VPS + Caddy/Nginx). Render
 2. "Environment" bo'limiga `.env.example` dagi o'zgaruvchilarni kiriting (`TRUST_PROXY=1` ham).
 3. **Doimiy disk (Disk) qo'shing** va `DATA_FILE=/data/db.json` qiling. Aks holda server qayta ishga tushganda o'quvchilar bazasi o'chib ketadi.
 
+
+## Ruxsat tizimi (24 soat)
+
+1. O'quvchi ro'yxatdan o'tib, raqamini SMS bilan tasdiqlaydi. Ilovaga kirmaydi: "Arizangiz adminga yuborildi, 1-5 daqiqa kuting" oynasi chiqadi.
+2. Ariza adminning "Arizalar" bo'limiga tushadi (panel har 8 soniyada o'zi yangilanadi, yangi arizada signal va xabar chiqadi).
+3. Admin "Ruxsat berish" ni bosadi. O'quvchining ekrani o'zi ochiladi va tepada 24 soatlik taymer ishga tushadi (taymer o'quvchi kirganda boshlanadi, tasdiqlangan paytdan emas).
+4. Vaqt tugagach o'quvchi "Ruxsat so'rash" tugmasini bosadi, ariza yana adminga tushadi. Natijalar saqlanib turadi.
+5. Admin faol o'quvchiga "+24 soat" qo'sha oladi yoki "To'xtatish" bilan ruxsatni olib qo'yadi.
+6. Muddat `ACCESS_HOURS` bilan o'zgaradi (standart 24).
+
+Admin o'zi yaratgan login/parolli o'quvchiga ruxsat avvaldan beriladi.
+
+## AI yordamchi
+
+Ikki variantdan bittasi kerak (kalit yo'q bo'lsa AI "sozlanmagan" deydi):
+
+- **Gemini (bepul daraja bor):** aistudio.google.com/apikey dan kalit oling va `GEMINI_API_KEY` ga yozing. Model nomi o'zgarib turadi, kerak bo'lsa `GEMINI_MODEL` bilan almashtiring (standart `gemini-flash-latest`).
+- **Anthropic (Claude, pullik):** console.anthropic.com dan kalit oling, `ANTHROPIC_API_KEY` ga yozing.
+
+Ikkalasi ham bo'lsa `AI_PROVIDER=gemini` yoki `anthropic` deb tanlang.
+
 ## Test savollari va videolarni joylash
 
 `public/bank.json` (yoki serverdagi `data/bank.json`) faylini almashtirish kifoya, sahifani qayta yig'ish shart emas:

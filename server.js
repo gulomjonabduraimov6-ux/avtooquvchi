@@ -12,6 +12,9 @@ const CFG = {
   smsText: env.SMS_TEXT || "AvtoO'quvchi tasdiqlash kodi: {code}",
   aiKey: env.ANTHROPIC_API_KEY, aiModel: env.AI_MODEL || "claude-sonnet-5-5",
   adminPath: env.ADMIN_PATH || "/admin", proxy: env.TRUST_PROXY === "1",
+  hrs: +env.ACCESS_HOURS || 24,                                 // bepul foydalanish muddati (soat)
+  geminiKey: env.GEMINI_API_KEY, geminiModel: env.GEMINI_MODEL || "gemini-flash-latest", geminiBase: (env.GEMINI_BASE || "https://generativelanguage.googleapis.com/v1beta").replace(/\/$/, ""),
+  aiProvider: (env.AI_PROVIDER || (env.GEMINI_API_KEY && !env.ANTHROPIC_API_KEY ? "gemini" : "anthropic")).toLowerCase(),
 };
 
 /* ---------- Ma'lumotlar bazasi (JSON fayl) ---------- */
@@ -36,9 +39,21 @@ const newSession = (role, id) => { const t = crypto.randomBytes(32).toString("he
 const session = req => { const m = /^Bearer (\w{64})$/.exec(req.headers.authorization || ""); if (!m) return null; const s = db.sessions[sha(m[1])]; return s && s.exp > Date.now() ? { ...s, key: sha(m[1]) } : null; };
 const ipOf = req => (CFG.proxy && String(req.headers["x-forwarded-for"] || "").split(",")[0].trim()) || req.socket.remoteAddress || "?";
 const pub = u => ({ id: u.id, first: u.first, last: u.last, school: u.school, phone: u.phone, v: u.v, ap: u.ap, exam: u.exam });
-const adminRow = u => ({ ...pub(u), sub: u.sub, at: u.at, act: u.act, n: u.n || 0, ok: u.ok || 0, hasPw: !!u.h });
+const adminRow = u => ({ ...pub(u), sub: u.sub, at: u.at, act: u.act, n: u.n || 0, ok: u.ok || 0, hasPw: !!u.h, acc: u.acc || 0, grant: u.grant || 0, req: u.req || 0 });
 const normLogin = s => { s = String(s || "").trim().toLowerCase(); const d = s.replace(/\D/g, ""); return /^(998)?\d{9}$/.test(d) ? "tel" + d.slice(-9) : s; };
 const cleanName = s => String(s || "").trim().replace(/\s+/g, " ").slice(0, 40);
+
+/* ---------- Ruxsat (24 soatlik bepul foydalanish) ---------- */
+// pending: admin tasdig'ini kutmoqda | granted/active: ruxsat bor (taymer o'quvchi kirganda boshlanadi) | expired: vaqt tugagan | rejected
+const accOf = (u, start) => {
+  if (u.ap === -1) return { status: "rejected" };
+  if (u.ap === 1) {
+    if (!u.acc && start && u.v) { u.acc = Date.now() + (u.grant || CFG.hrs) * 36e5; flush(); }
+    if (!u.acc) return { status: "granted" };
+    return u.acc > Date.now() ? { status: "active", until: u.acc, now: Date.now() } : { status: "expired", now: Date.now() };
+  }
+  return { status: "pending", now: Date.now(), since: u.req || u.sub || 0 };
+};
 
 /* ---------- SMS ---------- */
 let eskTok = null;
@@ -75,6 +90,15 @@ Qoidalar:
 4) Javob qisqa va tushunarli bo’lsin: avval asosiy fikr, keyin bitta hayotiy misol. Kerak bo’lsa oxirida bitta aniqlashtiruvchi savol ber.
 5) Test savolini tushuntirganda nega to’g’ri javob to’g’ri va boshqalari nega noto’g’ri ekanini ayt.
 6) Modda yoki band raqamlarini o’ylab topma. Ishonching komil bo’lmasa, rasmiy YHQ matnidan tekshirishni ayt.`;
+  if (CFG.aiProvider === "gemini") {
+    const r = await fetch(CFG.geminiBase + "/models/" + encodeURIComponent(CFG.geminiModel) + ":generateContent", { method: "POST", headers: { "x-goog-api-key": CFG.geminiKey, "content-type": "application/json" }, body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: msgs.map(x => ({ role: x.role === "assistant" ? "model" : "user", parts: [{ text: x.content }] })), generationConfig: { maxOutputTokens: 700, temperature: 0.7 } }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((j.error && j.error.message) || "Gemini xatosi");
+    const parts = (((j.candidates || [])[0] || {}).content || {}).parts;
+    const text = (parts || []).map(x => x.text || "").join("").trim();
+    if (!text) throw new Error("Gemini bo‘sh javob qaytardi");
+    return text;
+  }
   const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": CFG.aiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify({ model: CFG.aiModel, max_tokens: 700, system: sys, messages: msgs }) });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error((j.error && j.error.message) || "AI xatosi");
@@ -123,9 +147,9 @@ async function handle(req, res) {
     if (u && dup) return fail(res, 409, "Bu raqam boshqa hisobda ro‘yxatdan o‘tgan");
     if (!u) { u = dup || db.students["tel" + phone]; if (u && u.ap === -1) return fail(res, 403, "Arizangiz rad etilgan. Administrator bilan bog‘laning"); }
     if (!u) u = db.students["tel" + phone] = { id: "tel" + phone, at: now };
-    if (!u.v) Object.assign(u, { first, last, school, phone, v: 1, sub: now, ap: 0 });
+    if (!u.v) { Object.assign(u, { first, last, school, phone, v: 1, sub: now }); if (u.ap === undefined) u.ap = 0; }
     u.act = now; flush();
-    return send(res, 200, { token: newSession("student", u.id), user: pub(u), state: u.state || {} });
+    return send(res, 200, { token: newSession("student", u.id), user: pub(u), state: u.state || {}, access: accOf(u, true) });
   }
   if (p === "/api/login" && m === "POST") {
     if (!limit("l:" + ip, 20, 9e5)) return fail(res, 429, "Juda ko‘p urinish. 15 daqiqadan keyin urinib ko‘ring");
@@ -134,7 +158,7 @@ async function handle(req, res) {
     if (!u || !vp(body.password, u.h)) return fail(res, 401, "Login yoki parol noto‘g‘ri");
     if (u.ap === -1) return fail(res, 403, "Arizangiz rad etilgan. Administrator bilan bog‘laning");
     u.act = Date.now(); flush();
-    return send(res, 200, { token: newSession("student", u.id), user: pub(u), state: u.state || {} });
+    return send(res, 200, { token: newSession("student", u.id), user: pub(u), state: u.state || {}, access: accOf(u, true) });
   }
   if (p === "/api/logout" && m === "POST") { if (S) { delete db.sessions[S.key]; flush(); } return send(res, 200, { ok: true }); }
 
@@ -142,15 +166,19 @@ async function handle(req, res) {
   if (p.startsWith("/api/me") || p === "/api/ai") {
     const u = S && S.role === "student" && db.students[S.id];
     if (!u) return fail(res, 401, "Qayta kiring");
-    if (u.ap === -1) return fail(res, 403, "Arizangiz rad etilgan");
-    if (p === "/api/me" && m === "GET") return send(res, 200, { user: pub(u), state: u.state || {} });
+    if (p === "/api/me" && m === "GET") return send(res, 200, { user: pub(u), state: u.ap === -1 ? {} : u.state || {}, access: accOf(u, true) });
+    if (p === "/api/me/request" && m === "POST") {
+      if (accOf(u).status === "expired") { u.ap = 0; u.acc = 0; u.req = Date.now(); flush(); }
+      return send(res, 200, { access: accOf(u) });
+    }
+    if (accOf(u).status !== "active") return fail(res, 403, "Ruxsat yo‘q yoki vaqt tugagan");
     if (p === "/api/me/state" && m === "PUT") {
       const st = body.state; if (!st || typeof st !== "object" || JSON.stringify(st).length > 150000) return fail(res, 400, "Noto‘g‘ri ma’lumot");
       u.state = st; u.n = Math.max(0, +st.n || 0); u.ok = Math.max(0, +st.ok || 0); u.exam = /^\d{4}-\d\d-\d\d$/.test(st.exam || "") ? st.exam : ""; u.act = Date.now(); flush();
       return send(res, 200, { ok: true });
     }
     if (p === "/api/ai" && m === "POST") {
-      if (!CFG.aiKey) return fail(res, 503, "AI sozlanmagan");
+      if (!(CFG.aiProvider === "gemini" ? CFG.geminiKey : CFG.aiKey)) return fail(res, 503, "AI sozlanmagan");
       if (!limit("ai:" + u.id, 40, 36e5)) return fail(res, 429, "Ko‘p so‘rov");
       let msgs = (Array.isArray(body.messages) ? body.messages : []).slice(-9).filter(x => x && (x.role === "user" || x.role === "assistant") && typeof x.content === "string").map(x => ({ role: x.role, content: x.content.slice(0, 2000) }));
       while (msgs.length && msgs[0].role !== "user") msgs.shift();
@@ -172,13 +200,18 @@ async function handle(req, res) {
     if (p === "/api/admin/students" && m === "GET") return send(res, 200, { students: Object.values(db.students).map(adminRow), cfg: { login: db.admin.login, tmp: !!db.admin.tmp } });
     if (p === "/api/admin/students" && m === "POST") {
       let id; do id = "avto" + String(crypto.randomInt(0, 10000)).padStart(4, "0"); while (db.students[id]);
-      const pw = rndPw(); db.students[id] = { id, h: hp(pw), v: 0, at: Date.now() }; flush(); return send(res, 200, { id, password: pw });
+      const pw = rndPw(); db.students[id] = { id, h: hp(pw), v: 0, at: Date.now(), ap: 1, grant: CFG.hrs, acc: 0 }; flush(); return send(res, 200, { id, password: pw });
     }
     const mm = /^\/api\/admin\/students\/([a-z0-9]+)(\/password)?$/.exec(p), u = mm && db.students[mm[1]];
     if (mm) {
       if (!u) return fail(res, 404, "O‘quvchi topilmadi");
       if (mm[2] && m === "POST") { const pw = rndPw(); u.h = hp(pw); for (const [k, s] of Object.entries(db.sessions)) if (s.role === "student" && s.id === u.id) delete db.sessions[k]; flush(); return send(res, 200, { password: pw }); }
-      if (m === "PATCH") { if (![1, -1, 0].includes(body.ap)) return fail(res, 400, "Noto‘g‘ri holat"); u.ap = body.ap; if (body.ap === -1) for (const [k, s] of Object.entries(db.sessions)) if (s.role === "student" && s.id === u.id) delete db.sessions[k]; flush(); return send(res, 200, { ok: true }); }
+      if (m === "PATCH") {
+        if (![1, -1, 0].includes(body.ap)) return fail(res, 400, "Noto‘g‘ri holat");
+        if (body.ap === 1) { if (accOf(u).status === "active") u.acc += (u.grant || CFG.hrs) * 36e5; else { u.ap = 1; u.grant = CFG.hrs; u.acc = 0; } u.apAt = Date.now(); }
+        else { u.ap = body.ap; u.acc = 0; if (body.ap === -1) for (const [k, s] of Object.entries(db.sessions)) if (s.role === "student" && s.id === u.id) delete db.sessions[k]; }
+        flush(); return send(res, 200, { ok: true });
+      }
       if (m === "DELETE") { delete db.students[u.id]; for (const [k, s] of Object.entries(db.sessions)) if (s.id === u.id) delete db.sessions[k]; flush(); return send(res, 200, { ok: true }); }
     }
     if (p === "/api/admin/config" && m === "PUT") {
@@ -194,7 +227,7 @@ async function handle(req, res) {
 http.createServer((req, res) => { handle(req, res).catch(e => { if (!res.headersSent) fail(res, e.code || 500, e.code ? e.message : "Server xatosi"); if (!e.code) console.error(e); }); })
   .listen(PORT, () => {
     console.log(`AvtoO’quvchi: http://localhost:${PORT}   (admin: ${CFG.adminPath})`);
-    console.log(`SMS: ${CFG.sms}${CFG.sms === "demo" ? " (kod konsolda va ekranda ko‘rinadi, haqiqiy SMS yuborilmaydi)" : ""} | AI: ${CFG.aiKey ? "yoqilgan" : "o‘chiq (ANTHROPIC_API_KEY yo‘q)"}`);
+    console.log(`SMS: ${CFG.sms}${CFG.sms === "demo" ? " (kod konsolda va ekranda ko‘rinadi, haqiqiy SMS yuborilmaydi)" : ""} | AI: ${(CFG.aiProvider === "gemini" ? CFG.geminiKey : CFG.aiKey) ? CFG.aiProvider + " yoqilgan" : "o‘chiq (GEMINI_API_KEY yoki ANTHROPIC_API_KEY yo‘q)"} | Ruxsat muddati: ${CFG.hrs} soat`);
     if (db.admin.tmp) console.log("DIQQAT: vaqtinchalik admin paroli (admin / admin2026). Kirgach darhol o‘zgartiring.");
     if (CFG.sms === "eskiz" && (!CFG.eskizEmail || !CFG.eskizPass)) console.log("DIQQAT: ESKIZ_EMAIL va ESKIZ_PASSWORD kiritilmagan.");
   });
