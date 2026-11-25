@@ -217,6 +217,7 @@ body>.mb-6{display:none!important}@media(max-width:767px){body{padding:0!importa
 .phone-mockup{width:100%;height:100dvh;border:0;border-radius:0;box-shadow:none}.screen{padding-top:calc(env(safe-area-inset-top,0px) + 20px)}.nav-bar{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));height:calc(80px + env(safe-area-inset-bottom,0px))}}
 #tbar{display:none;position:absolute;left:50%;top:46px;transform:translateX(-50%);z-index:45;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(15,23,42,.92);border:1px solid rgba(16,185,129,.45);color:#6ee7b7;font:700 11px "JetBrains Mono",monospace;pointer-events:none;white-space:nowrap}
 #tbar.warn{border-color:rgba(245,158,11,.55);color:#fbbf24}#tbar.crit{border-color:rgba(239,68,68,.65);color:#f87171;animation:tbp 1s infinite}@keyframes tbp{50%{opacity:.55}}
+@media(min-width:768px){#tbar{display:none!important}}
 @media(max-width:767px){#tbar{top:calc(env(safe-area-inset-top,0px) + 6px)}.hastb .screen{padding-top:calc(env(safe-area-inset-top,0px) + 44px)}}
 </style>
 </head>
@@ -264,7 +265,7 @@ body>.mb-6{display:none!important}@media(max-width:767px){body{padding:0!importa
       <!-- Dynamic Island inside header -->
       <div class="dynamic-island">
         <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/90 animate-pulse"></div>
-        <span class="text-[9px] text-slate-300 hud-font tracking-wider">AI ACTIVE</span>
+        <span class="text-[9px] text-slate-300 hud-font tracking-wider"><span id="tbi">AI ACTIVE</span></span>
         <div class="w-2.5 h-2.5 rounded-full bg-blue-500/60"></div>
       </div>
       <div class="flex items-center gap-2 text-white">
@@ -1098,10 +1099,10 @@ async function doLogin(){const id=$("#lg").value.trim(),p=$("#pw").value;if(!id|
 try{const r=await api("/api/login",{method:"POST",body:{login:id,password:p}});setTok(r.token);enter(r)}catch(e){$("#er").textContent=e.message}}
 let ACC=null,tickT=null,pollT=null;
 const hms=t=>{t=Math.max(0,Math.floor(t/1e3));const p=n=>String(n).padStart(2,"0");return p(Math.floor(t/3600))+":"+p(Math.floor(t%3600/60))+":"+p(t%60)};
-function stopTimers(){clearInterval(tickT);clearInterval(pollT);tickT=pollT=null;ACC=null;const b=$("#tbar");if(b)b.style.display="none";document.body.classList.remove("hastb")}
+function stopTimers(){const ti=$("#tbi");if(ti){ti.textContent="AI ACTIVE";ti.style.color=""}clearInterval(tickT);clearInterval(pollT);tickT=pollT=null;ACC=null;const b=$("#tbar");if(b)b.style.display="none";document.body.classList.remove("hastb")}
 function setAcc(a){ACC={until:a.until,skew:a.now-Date.now()};clearInterval(tickT);tick();tickT=setInterval(tick,1000)}
 function tick(){if(!ACC)return;const rem=ACC.until-(Date.now()+ACC.skew),b=$("#tbar"),on=NAV.some(id=>$("#screen-"+id).classList.contains("active"));
-b.textContent="⏱ "+hms(rem);b.className=rem<3e5?"crit":rem<36e5?"warn":"";b.style.display=on?"flex":"none";document.body.classList.toggle("hastb",on);
+b.textContent="⏱ "+hms(rem);const ti=$("#tbi");if(ti){ti.textContent=on?"⏱ "+hms(rem):"AI ACTIVE";ti.style.color=on?(rem<3e5?"#f87171":rem<36e5?"#fbbf24":"#6ee7b7"):""}b.className=rem<3e5?"crit":rem<36e5?"warn":"";b.style.display=on?"flex":"none";document.body.classList.toggle("hastb",on);
 if(rem<=0){stopTimers();T=null;clearInterval(tm);expiredV()}}
 function enter(r){U=r.user;const a=r.access||{};if(!U.v)return onb();
 if(a.status==="active"){S={...S0(),...(r.state||{})};fillNames();setAcc(a);S.exam?(S.tour?setScreen("home"):tourV()):planV()}
